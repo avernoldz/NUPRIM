@@ -1,0 +1,184 @@
+.wrapper {
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  min-width: 250px;
+  width: 250px;
+  font-size: var(--font-size);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  transition: 0.5s;
+  background: var(--blue-600);
+  box-shadow: 3px 4px 6px 0px rgba(0, 0, 0, 0.1);
+}
+
+.side-bar ul li {
+  list-style-type: none;
+  padding: 8px 24px;
+  transition: 0.5s;
+  --webkit-transition: 0.5s;
+  color: #ffffff;
+}
+
+.side-bar .drop-profile li {
+  padding-left: 36px;
+}
+
+.side-bar .title {
+  padding: 16px;
+  margin: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  color: #ffffff;
+}
+
+.side-bar .drop-profile {
+  background: var(--blue-700);
+}
+
+.side-bar .drop-profile.hon {
+  display: block;
+}
+
+.side-bar .act {
+  background: var(--blue-300);
+}
+
+.side-bar .title h1 {
+  font-size: 20px;
+}
+
+.side-bar ul li:hover {
+  background: var(--blue-300);
+}
+
+.side-bar a span {
+  margin-left: 8px;
+}
+
+.side-bar a {
+  text-decoration: none;
+}
+.side-bar .active {
+  background: var(--blue-400);
+}
+
+.side-bar .drop-profile {
+  display: none;
+}
+
+.main {
+  margin-left: 250px;
+  padding: 16px 32px 32px 32px;
+  color: var(--maindar);
+  min-height: 100vh;
+  color: var(--font);
+  transition: 0.5s;
+}
+
+.main .row {
+  margin: 0px;
+}
+
+.main .col.card {
+  display: flex;
+  flex-direction: column;
+  border-radius: 4px;
+  padding: 16px 32px;
+  box-shadow: 0px 3px 5px -3px rgba(0, 0, 0, 0.5);
+  border: 0px;
+}
+
+.main .row.bg {
+  background-color: white;
+  padding: 16px;
+  border-radius: 4px;
+  box-shadow: 0px 3px 5px -3px rgba(0, 0, 0, 0.1);
+}
+.main .row.bg.column-gap-3 {
+  padding: 32px;
+}
+
+.main .col.head h1,
+.main .col.card h2 {
+  font-size: 16px;
+}
+
+.main .col.mid {
+  margin: 0px 16px 0px 16px;
+}
+
+.main .col.card h3 {
+  font-size: 48px;
+}
+
+main .col.card .row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.main .row.calendar {
+  overflow: hidden;
+  margin-top: 16px;
+  border-radius: 4px;
+}
+
+.main .row.calendar .col {
+  padding: 0px;
+}
+.main .row.calendar .cjslib-year,
+.main .row.calendar .cjslib-month {
+  width: 100%;
+}
+
+.main .row.calendar .cjslib-calendar {
+  width: 100%;
+}
+
+.main .row.calendar .cjslib-days .cjslib-row .cjslib-day-today {
+  background-color: #fff9d7;
+  color: white;
+}
+
+.main .row.calendar .cjslib-days .cjslib-row .cjslib-day {
+  margin: 0px;
+}
+
+@media screen and (max-height: 700px) {
+  .side-bar ul li {
+    padding: 8px 40px;
+  }
+}
+
+.side-bar .dropdown a li,
+.side-bar .drop-honor a li {
+  padding-left: 32px;
+}
+
+.side-bar .dropdown,
+.side-bar .drop-honor {
+  display: none;
+}
+
+.side-bar .dropdown.on,
+.side-bar .drop-honor.hon {
+  display: block;
+}
+
+.side-toggle,
+.side-close {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 6;
+}
+
+.side-close {
+  display: none;
+}

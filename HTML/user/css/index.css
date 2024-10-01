@@ -1,0 +1,112 @@
+/* Students */
+.main .col.head {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.main .col.head .crs-yr {
+  width: 500px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  column-gap: 16px;
+}
+
+.main .col.head .crs-yr .form-group.row {
+  align-items: center;
+  width: 100%;
+}
+
+.main .col.head .crs-yr .form-group.row label {
+  font-weight: 500;
+}
+
+.main .col.head .crs-yr .form-group {
+  margin: 0px;
+}
+
+.main .col.head .crs-yr .col-form-label {
+  padding: 0px;
+}
+
+.main .col.head .crs-yr .col-sm-7,
+.main .col.head .crs-yr .col-sm-8 {
+  padding: 0px 8px 0px 8px;
+}
+
+.main .col.head h1 {
+  margin: 0px;
+}
+
+/* Modal */
+.modal label {
+  font-weight: 500;
+}
+
+.modal h5 {
+  font-weight: 600;
+  font-size: 20px;
+}
+
+.modal .modal-body {
+  padding: 24px;
+}
+
+/* Sign in CSS */
+
+.row.sign .col-6 {
+  height: 100vh;
+}
+
+.row.sign .col-6:nth-child(1) {
+  background: url("../../../Assets/bg.jpg");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: 30% 40%;
+}
+
+.row.sign .col-6.bg:nth-child(1)::before {
+  content: "";
+  display: block;
+  height: 100vh;
+  width: 100%;
+  background: rgb(187, 20, 20);
+  background: linear-gradient(
+    185deg,
+    rgba(15, 42, 113, 1) 0%,
+    rgba(187, 20, 20, 1) 100%
+  );
+  opacity: 0.7;
+}
+
+.row.sign-in .col.sign {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  margin: auto;
+  align-items: center;
+}
+
+.row.sign-in {
+  height: 100vh;
+  width: 100%;
+  padding: 5em;
+}
+
+.row.error {
+  border: 1px solid var(--bs-danger);
+  padding: 12px 8px;
+  background: #ff97a1;
+  text-align: center;
+  width: 75%;
+}
+
+.row.login-first {
+  border: 1px solid var(--bs-warning);
+  padding: 12px 8px;
+  background: #ffe8a3;
+  text-align: center;
+  width: 75%;
+}

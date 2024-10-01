@@ -1,0 +1,60 @@
+.main .row .col.table {
+  padding: 16px;
+  background-color: white;
+  border-radius: 4px;
+  width: 100%;
+  box-shadow: 0px 3px 5px -3px rgba(0, 0, 0, 0.1);
+}
+
+.main .row.table #myTable_wrapper {
+  width: 100%;
+}
+
+/* #myTable_wrapper {
+  padding: 16px;
+  margin-top: 2rem;
+}
+
+.table.dataTable.no-footer,
+#myTable_wrapper .table.dataTable {
+  border: 1px solid rgb(226, 226, 226);
+  border-radius: 5px;
+  margin-top: 50px;
+  margin-bottom: 10px;
+}
+#myTable_previous:hover,
+#myTable_next:hover {
+  background: var(--maindark) !important;
+  border: 1px solid var(--maindark) !important;
+  color: white !important;
+}
+
+.main input[type="search"] {
+  border: 1px solid rgb(226, 226, 226);
+  padding: 8px;
+  border-radius: 5px;
+  font-weight: 500;
+  font-size: 16px;
+  width: 300px;
+  float: right;
+  margin-bottom: 16px;
+  margin-top: 16px;
+}
+
+thead {
+  background-color: var(--maindark);
+  color: white;
+}
+
+#myTable_paginate a.paginate_button.current {
+  background: var(--maindark) !important;
+  color: white !important;
+}
+a.paginate_button {
+  background: none !important;
+  border-radius: 5px;
+}
+
+table {
+  border: 1px solid rgb(226, 226, 226);
+} */
