@@ -34,8 +34,8 @@ if (!isset($_SESSION['adminid'])) {
     $adminid = $_SESSION['adminid'];
     $active = "User Logs";
     $log = 0;
-    include "sideBar.php";
     include "../../Connections/Include.php";
+    include "sideBar.php";
 
     ?>
     <div class="main">
@@ -74,13 +74,13 @@ if (!isset($_SESSION['adminid'])) {
                                 <td width="15%">
                                     <?php echo "$rows[userid]" ?>
                                 </td>
-                                <td width="35%">
+                                <td width="25%">
                                     <?php echo "$rows[firstname] $rows[lastname] " ?>
                                 </td>
                                 <td width="15%">
                                     <?php echo "$rows[accountType]" ?>
                                 </td>
-                                <td width="10%">
+                                <td width="20%">
                                     <?php echo "$rows[action]" ?>
                                 </td>
                                 <td width="25%">

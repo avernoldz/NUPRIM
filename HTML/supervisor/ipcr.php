@@ -97,8 +97,9 @@ include_once "components/index.php";
                                 <td class="border-0"><?php echo "$rows[position]" ?></td>
                                 <td class="border-0"><?php echo "$rows[semester] $rows[year]" ?></td>
                                 <td class="border-0"><?php echo "$stat" ?></td>
-                                <td class="text-center border-0"><a
-                                        href="generate.php<?php echo "?userid=$rows[userid]&ipcr=$rows[ipcrid]" ?>" class="p-[4px]"><i class="fa-solid fa-eye fa-fw text-[#7b8087]"></i></a>
+                                <td class="text-center border-0">
+                                    <a href="generate.php<?php echo "?userid=$rows[userid]&ipcr=$rows[ipcrid]" ?>" class="p-[4px]"><i class="fa-solid fa-eye fa-fw text-[#7b8087]"></i></a>
+                                    <a href="documents.php<?php echo "?userid=$rows[userid]&ipcr=$rows[ipcrid]" ?>" class="p-[4px]"><i class="fa-solid fa-folder fa-fw text-[#7b8087]"></i></a>
                                 </td>
                             </tr>
                     <?php

@@ -34,9 +34,9 @@ if (!isset($_SESSION['adminid'])) {
     $adminid = $_SESSION['adminid'];
     $active = "Account";
     $log = 0;
-    include "sideBar.php";
     include "../../Connections/Include.php";
     include "components/components.php";
+    include "sideBar.php";
 
     if (isset($_GET['alert']) && $_GET['alert'] == '1') {
         echo '<script>var alertMessage = "Account has been added successfully!";</script>';
@@ -133,8 +133,8 @@ if (!isset($_SESSION['adminid'])) {
                                 <label for="type" class="form-label">Type <span class="text-[red]">*</span></label>
                                 <select class="form-select" aria-label="Default select example" id="type" name="type">
                                     <option value="Admin">Admin</option>
-                                    <option value="Supervisor">Supervisor</option>
-                                    <option value="User" selected>User</option>
+                                    <!-- <option value="Supervisor">Supervisor</option>
+                                    <option value="User" selected>User</option> -->
                                 </select>
                             </div>
                         </div>

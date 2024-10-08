@@ -34,12 +34,11 @@ if (!isset($_SESSION['adminid'])) {
     $adminid = $_SESSION['adminid'];
     $active = "Supervisors";
     $log = 0;
-    include "sideBar.php";
     include "../../Connections/Include.php";
+    include "sideBar.php";
 
-    // $query2 = "SELECT COUNT(facultyid) as total FROM faculty";
-    // $results2 = mysqli_query($conn, $query2);
-    // $row2 = mysqli_fetch_array($results2);
+    $pquery = "SELECT * FROM plantilla";
+    $pres = mysqli_query($conn, $pquery);
     ?>
     <div class="main">
         <div class="row">
@@ -49,7 +48,7 @@ if (!isset($_SESSION['adminid'])) {
         </div>
 
         <div class="row bg-[#ffffff] rounded-[4px] mt-3 shadow-[0_3px_5px_-3px_rgba(0,0,0,0.1)] p-[16px]">
-            <!-- <button class="bg-[var(--primary-blue)] text-[#ffffff] w-[50px] rounded-[2px] p-[4px] hover:opacity-75 transition-all" data-bs-toggle="modal" data-bs-target="#newPersonnel"><i class="fa-solid fa-plus fa-fw"></i></button> -->
+            <button class="bg-[var(--primary-blue)] text-[#ffffff] w-[50px] rounded-[2px] p-[4px] hover:opacity-75 transition-all" data-bs-toggle="modal" data-bs-target="#newPersonnel"><i class="fa-solid fa-plus fa-fw"></i></button>
             <table id="table" class="display border-[1px] cell-border" style="width:100%">
                 <thead class="bg-[var(--black-900)] text-[var(--black-400)]">
                     <tr>
@@ -106,29 +105,46 @@ if (!isset($_SESSION['adminid'])) {
             <div class="modal-dialog modal-dialog-centered modal-lg">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h1 class="modal-title fs-5" id="staticBackdropLabel">Add Personnel</h1>
+                        <h1 class="modal-title fs-5" id="staticBackdropLabel">Add Account</h1>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
                         <div class="row column-gap-3">
                             <div class="col">
-                                <label for="firstname" class="form-label">Firstname <span class="text-[red]">*</span></label>
-                                <input type="text" id="firstname" class="form-control" name="firstname" required>
+                                <label for="username" class="form-label">Username <span class="text-[red]">*</span></label>
+                                <input type="text" id="username" class="form-control" name="username" required>
                             </div>
                             <div class="col">
-                                <label for="middlename" class="form-label">Middlename</label>
-                                <input type="text" id="middlename" class="form-control" name="middlename">
+                                <label for="email" class="form-label">Email<span class="text-[red]">*</span></label>
+                                <input type="email" id="email" class="form-control" name="email" required>
                             </div>
                         </div>
 
                         <div class="row column-gap-3 mt-2">
                             <div class="col">
-                                <label for="lastname" class="form-label">Lastname <span class="text-[red]">*</span></label>
-                                <input type="text" id="lastname" class="form-control" name="lastname" required>
+                                <label for="item" class="form-label">Item Number <span class="text-[red]">*</span></label>
+                                <select type="text" id="item" class="form-control" name="item" required>
+                                    <option disabled selected>Select Item Number</option>
+                                    <?php
+                                    if (mysqli_num_rows($pres) > 0) {
+                                        while ($rows2 = mysqli_fetch_array($pres)) {
+                                    ?>
+                                            <option value="<?php echo "$rows2[itemNumber]" ?>"><?php echo "$rows2[itemNumber] - $rows2[position]" ?></option>
+                                    <?php
+                                        }
+                                    } ?>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row column-gap-3 mt-2" id="super">
+                            <div class="col">
+                                <label for="firstname" class="form-label">Firstname <span class="text-[red]">*</span></label>
+                                <input type="text" id="firstname" class="form-control" name="firstname" required>
                             </div>
                             <div class="col">
-                                <label for="email" class="form-label">Email <span class="text-[red]">*</span></label>
-                                <input type="email" id="email" class="form-control" name="email" required>
+                                <label for="lastname" class="form-label">Lastname <span class="text-[red]">*</span></label>
+                                <input type="text" id="lastname" class="form-control" name="lastname" required>
                             </div>
                         </div>
 
@@ -140,28 +156,6 @@ if (!isset($_SESSION['adminid'])) {
                             <div class="col">
                                 <label for="password" class="form-label">Confirm Password <span class="text-[red]">*</span></label>
                                 <input type="password" id="cpassword" class="form-control" name="cpassword" required>
-                            </div>
-                        </div>
-
-                        <div class="row column-gap-3 mt-2">
-                            <div class="col">
-                                <label for="salary-grade" class="form-label">Salary Grade</label>
-                                <input type="salary-grade" id="salary-grade" class="form-control" name="salary-grade" required>
-                            </div>
-                            <div class="col">
-                                <label for="item-number" class="form-label">Item Number</label>
-                                <input type="item-number" id="item-number" class="form-control" name="item-number" required>
-                            </div>
-                        </div>
-
-                        <div class="row column-gap-3 mt-2">
-                            <div class="col">
-                                <label for="designation" class="form-label">Designation</label>
-                                <input type="designation" id="designation" class="form-control" name="designation" required>
-                            </div>
-                            <div class="col">
-                                <label for="office" class="form-label">Office/Station</label>
-                                <input type="office" id="office" class="form-control" name="office" required>
                             </div>
                         </div>
                     </div>
@@ -178,19 +172,34 @@ if (!isset($_SESSION['adminid'])) {
     <?php
     $options = ['cost' => 12];
     if (isset($_POST['save'])) {
-        $firstname = $_POST['firstname'];
-        $middlename = $_POST['middlename'];
-        $lastname = $_POST['lastname'];
+        $username = $_POST['username'];
+        $item = $_POST['item'];
+        $type = 'Supervisor';
         $email = $_POST['email'];
         $password = $_POST['password'];
+        $firstname = $_POST['firstname'];
+        $lastname = $_POST['lastname'];
+        $isArchive = TRUE;
 
         $hash_pass = password_hash($password, PASSWORD_BCRYPT, $options);
 
-        $insert = "INSERT INTO user(firstname, middlename, lastname, email, password)
-                        VALUES('$firstname','$middlename','$lastname','$email','$hash_pass')";
+        $insert = "INSERT INTO account(username, itemNumber, type, email, password, isArchive)
+                        VALUES('$username','$item','$type','$email','$hash_pass', '$isArchive')";
 
         if (mysqli_query($conn, $insert)) {
-            echo "<script>window.location.href='personnel.php?adminid=$adminid&alert=1';</script>";
+            $id = mysqli_insert_id($conn);
+
+            $insert2 = "INSERT INTO supervisor(firstname, lastname, userid)
+                        VALUES('$firstname','$lastname','$id')";
+
+            $insert3 = "INSERT INTO service(userid)
+                        VALUES('$id')";
+            mysqli_query($conn, $insert3);
+
+            if (mysqli_query($conn, $insert2)) {
+                echo "<script>window.location.href='account.php?adminid=$adminid&alert=1';</script>";
+                exit();
+            }
         } else {
             echo mysqli_error($conn);
         }

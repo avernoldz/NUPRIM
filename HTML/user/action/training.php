@@ -15,7 +15,7 @@ if (isset($_POST['add-training'])) {
     $sanitized_sdate = mysqli_real_escape_string($conn, $sdate);
     $edate = $_POST['edate'];
     $sanitized_edate = mysqli_real_escape_string($conn, $edate);
-    $authno = $_POST['authno'];
+    // $authno = $_POST['authno'];
     // $sanitized_authno = mysqli_real_escape_string($conn, $authno);
     // $authdate = $_POST['authdate'];
     // $sanitized_authdate = mysqli_real_escape_string($conn, $authdate);
@@ -59,7 +59,7 @@ if (isset($_POST['add-training'])) {
 
         if (mysqli_query($conn, $insert)) {
             logAction($conn, $_SESSION['userid'], 'Add new training details', $_SESSION['type']);
-            echo "<script>window.location.href='../training.php?userid=$userid&alert=1';</script>";
+            echo "<script>window.location.href='../training.php?userid=$userid&alert=success&message=Saved Successfully';</script>";
         } else {
             echo mysqli_error($conn);
         }
@@ -76,7 +76,7 @@ if (isset($_GET['delete'])) {
 
     if (mysqli_query($conn, $delete)) {
         logAction($conn, $_SESSION['userid'], 'Delete training details', $_SESSION['type']);
-        header("Location:../training.php?userid=$userid&alert=1");
+        header("Location:../training.php?userid=$userid&alert=success&message=Deleted Successfully");
     } else {
         echo mysqli_errno($conn);
     }

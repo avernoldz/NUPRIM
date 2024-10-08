@@ -3,7 +3,7 @@ session_start();
 session_regenerate_id();
 
 if (!$_SESSION['userid']) {
-    header("Location:signin.php?login-first");
+    header("Location:../index.php?login-first");
 }
 
 include_once "components/index.php";
@@ -35,6 +35,12 @@ include_once "components/index.php";
     $on = "hon";
     include "sideBar.php";
     include "../../Connections/Include.php";
+
+    if (isset($_GET['alert']) && isset($_GET['message'])) {
+        $alertType = $_GET['alert'];
+        $alertMessage = urldecode($_GET['message']);
+        showToastr($alertMessage, $alertType);
+    }
 
     ?>
     <div class="main">
@@ -170,7 +176,7 @@ include_once "components/index.php";
                 </div>
             </div>
         </form>
-
+        <script src="../JS/app.js"></script>
 </body>
 
 </html>

@@ -3,7 +3,7 @@ session_start();
 session_regenerate_id();
 
 if (!$_SESSION['supervisorid']) {
-    header("Location:signin.php?login-first");
+    header("Location:../index.php?login-first");
 }
 
 include_once "../user/components/index.php";
@@ -19,10 +19,6 @@ include_once "../user/components/index.php";
     <link rel="stylesheet" href="CSS/index.css">
     <link rel="stylesheet" href="../../CSS/root.css">
     <link rel="stylesheet" href="CSS/side-bar.css">
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <title>IPCR Generator</title>
     <style>
         body {
@@ -628,6 +624,7 @@ include_once "../user/components/index.php";
                     rater: $('.rater').first().text(),
                     comments: $('.comments').text(),
                     action: $('.action').text(),
+                    finalRating: $('.final-avg').text(),
                     supervisorid: <?php echo $row2['supervisorid']; ?>, // Adjust as needed
                 };
 

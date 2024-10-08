@@ -3,7 +3,7 @@ session_start();
 session_regenerate_id();
 
 if (!$_SESSION['userid']) {
-    header("Location:signin.php?login-first");
+    header("Location:../index.php?login-first");
 }
 
 include_once "components/index.php";
@@ -122,7 +122,14 @@ include_once "components/index.php";
     INNER JOIN plantilla ON account.itemNumber = plantilla.itemNumber
     WHERE plantilla.station = '$row[station]' AND account.type = 'Supervisor'";
     $vs = mysqli_query($conn, $visor);
-    $row2 = mysqli_fetch_array($vs);
+
+    if (mysqli_num_rows($vs) > 0) {
+        $row2 = mysqli_fetch_array($vs);
+    } else {
+        $errorMessage = "You have no supervisor assigned yet";
+        echo "<script>window.location.href='ipcr.php?userid=$userid&alert=error&message=" . urlencode($errorMessage) . "';</script>";
+        exit();
+    }
 
     $middlename = htmlspecialchars($row['middlename']);
     $middlename2 = htmlspecialchars($row2['middlename']);

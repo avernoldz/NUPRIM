@@ -45,6 +45,16 @@ $count = countPendingIPCR($conn, $station);
                             </div>
                         </li>
                     </a>
+                    <a
+                        href="report.php">
+                        <li class="navi <?php if ($active == "Reports") {
+                                            echo "active";
+                                        } ?>">
+                            <div class="flex">
+                                <span class="!ml-0"><i class="fa-solid fa-folder-open fa-fw mr-2"></i> Reports</span>
+                            </div>
+                        </li>
+                    </a>
 
 
                 </ul>

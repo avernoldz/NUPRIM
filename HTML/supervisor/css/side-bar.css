@@ -93,7 +93,8 @@
   border: 0px;
 }
 
-.main .row.bg {
+.main .row.bg,
+.box {
   background-color: white;
   padding: 16px;
   border-radius: 4px;

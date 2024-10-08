@@ -34,9 +34,9 @@ if (!isset($_SESSION['adminid'])) {
     $adminid = $_SESSION['adminid'];
     $active = "Plantilla";
     $log = 0;
-    include "sideBar.php";
     include "../../Connections/Include.php";
     include "components/components.php";
+    include "sideBar.php";
 
     if (isset($_GET['alert']) && $_GET['alert'] == '1') {
         echo '<script>var alertMessage = "Plantilla has been added successfully!";</script>';
@@ -78,7 +78,7 @@ if (!isset($_SESSION['adminid'])) {
                             <tr>
                                 <td><?php echo "$rows[itemNumber]" ?></td>
                                 <td><?php echo "$rows[position]" ?></td>
-                                <td><?php echo "$rows[sgrade]" ?></td>
+                                <td><?php echo "SG - $rows[sgrade]" ?></td>
                                 <td><?php echo "PHP " . number_format($rows['msalary'], 2) ?></td>
                                 <td><?php echo "$rows[designation]" ?></td>
                                 <td><?php echo "$rows[station]" ?></td>
@@ -128,7 +128,7 @@ if (!isset($_SESSION['adminid'])) {
                                                                 <input type="text" id="station" class="form-control" name="station" value="<?php echo $rows['station'] ?>" required>
                                                             </div>
                                                         </div>
-                                                        <input type="hidden" name="plantillaid" value="<?php echo $row['plantillaid'] ?>">
+                                                        <input type="hidden" name="plantillaid" value="<?php echo $rows['plantillaid'] ?>">
                                                     </div>
                                                     <div class="modal-footer">
                                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -173,7 +173,7 @@ if (!isset($_SESSION['adminid'])) {
                         <div class="row column-gap-3 mt-2">
                             <div class="col">
                                 <label for="sgrade" class="form-label">Salary Grade <span class="text-[red]">*</span></label>
-                                <input type="text" id="sgrade" class="form-control" name="sgrade" required>
+                                <input type="number" id="sgrade" class="form-control" name="sgrade" required>
                             </div>
                             <div class="col">
                                 <label for="msalary" class="form-label">Monthly Salary <span class="text-[red]">*</span></label>

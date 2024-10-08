@@ -3,7 +3,7 @@ session_start();
 session_regenerate_id();
 
 if (!$_SESSION['userid']) {
-    header("Location:signin.php?login-first");
+    header("Location:../index.php?login-first");
 }
 
 include_once "components/index.php";

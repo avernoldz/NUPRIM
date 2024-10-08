@@ -267,26 +267,26 @@ if (isset($_POST['userid']) && isset($_POST['type'])) {
                                     <div class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                         <dd class="mt-1 text-base leading-6 text-gray-700 sm:col-span-2 sm:mt-0 font-medium ">' . htmlspecialchars($rows['eligibility']) . '</dd>
                                     </div>
-                                    <div class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                        <dt class="text-sm font-medium leading-6 text-gray-900">License No.</dt>
-                                        <dd class="capitalize mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">' . htmlspecialchars($rows['licenseNo']) . '</dd>
-                                    </div>
-                                    <div class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                        <dt class="text-sm font-medium leading-6 text-gray-900">Rating</dt>
-                                        <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">' . htmlspecialchars($rows['rating']) . '</dd>
-                                    </div>
-                                     <div class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                        <dt class="text-sm font-medium leading-6 text-gray-900">Place of Exam</dt>
-                                        <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">' . htmlspecialchars($rows['placeOfExam']) . '</dd>
-                                    </div>
-                                    <div class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                        <dt class="text-sm font-medium leading-6 text-gray-900">Date of Exam</dt>
-                                        <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">' . emptyData("dateOfExam", $rows) . '</dd>
-                                    </div>
-                                    <div class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                                        <dt class="text-sm font-medium leading-6 text-gray-900">Validity</dt>
-                                        <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">' . emptyData("validity", $rows) . '</dd>
-                                    </div>
+                                        <div class="px-5 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                                            <dt class="text-sm font-medium leading-6 text-gray-900">License No.</dt>
+                                            <dd class="capitalize mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">' . htmlspecialchars($rows['licenseNo']) . '</dd>
+                                        </div>
+                                        <div class="px-5 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                                            <dt class="text-sm font-medium leading-6 text-gray-900">Rating</dt>
+                                            <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">' . htmlspecialchars($rows['rating']) . '</dd>
+                                        </div>
+                                        <div class="px-5 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                                            <dt class="text-sm font-medium leading-6 text-gray-900">Place of Exam</dt>
+                                            <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">' . htmlspecialchars($rows['placeOfExam']) . '</dd>
+                                        </div>
+                                        <div class="px-5 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                                            <dt class="text-sm font-medium leading-6 text-gray-900">Date of Exam</dt>
+                                            <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">' . emptyData("dateOfExam", $rows) . '</dd>
+                                        </div>
+                                        <div class="px-5 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                                            <dt class="text-sm font-medium leading-6 text-gray-900">Validity</dt>
+                                            <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0">' . emptyData("validity", $rows) . '</dd>
+                                        </div>
                                 </dl>';
                 }
             } else {
@@ -300,33 +300,97 @@ if (isset($_POST['userid']) && isset($_POST['type'])) {
             $result = mysqli_query($conn, $query);
             $rows = mysqli_fetch_array($result);
 
+            $query2 = "SELECT * FROM servicehistory WHERE serviceid = '$rows[serviceid]'";
+            $result2 = mysqli_query($conn, $query2);
+            $rows2 = mysqli_fetch_all($result2, MYSQLI_ASSOC);
+            $lastDatePromotion = end($rows2);
+
+            echo '<div class="flex justify-content-end px-4 mt-3" data-bs-toggle="modal" data-bs-target="#addOrder">
+                    <i class="fa-solid fa-bars fa-add cursor-pointer p-2 rounded-full bg-gray-200"></i>
+                </div>';
+            echo '  
+            <form action="" method="POST" id="save-detail-orders" enctype="multipart/form-data">
+                <div class="modal fade" id="addOrder" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h1 class="modal-title fs-6 font-semibold ml-2" id="staticBackdropLabel" data-table="service" >Promotion</h1>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body p-4 text-[13px]">
+                                <div class="row column-gap-4">
+                                    <div class="col-7">
+                                        <label for="newPosition" class="form-label">Position Title</label>
+                                        <input type="text" id="newPosition" class="form-control" name="newPosition" required>
+                                    </div>
+
+                                    <div class="col">
+                                        <label for="datePromotion" class="form-label">Promotion Date</label>
+                                        <input type="date" id="datePromotion" class="form-control text-[13px]" name="datePromotion" required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <input type="hidden" name="serviceid" value="' .  $rows['serviceid'] . '">
+                                <input type="hidden" name="userid" value="' .  $userid . '">
+                                <button type="button" data-bs-dismiss="modal" class="cancel inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-green-300 sm:mt-0 sm:w-auto">Cancel</button>
+                                <button type="submit" class="save-detail inline-flex w-full ml-3 justify-center bg-green-600 rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-green-500 tranisition-all duration-200 sm:mt-0 sm:w-auto">Save</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            ';
+
             echo '
                 <dl class="divide-y divide-gray-100">
                     <div class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                         <dt class="text-sm font-medium leading-6 text-gray-900">Date Entered Service</dt>
-                        <dd class="capitalize mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="service" data-date="authorityDate" data-field="entered" data-id="' . $rows['serviceid'] . '">' . emptyData("entered", $rows) . '</dd>
+                        <dd class="capitalize flat-pickr mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="service" data-date="authorityDate" data-field="entered" data-id="' . emptyData("serviceid", $rows) . '">' . emptyData("entered", $rows) . '</dd>
                     </div>
                     <div class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                         <dt class="text-sm font-medium leading-6 text-gray-900">Appointment Status</dt>
-                        <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="service" data-field="appStatus" data-id="' . $rows['serviceid'] . '">' . emptyData("appStatus", $rows) . '</dd>
+                        <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="service" data-field="appStatus" data-id="' . emptyData("serviceid", $rows) . '">' . emptyData("appStatus", $rows) . '</dd>
                     </div>
                         <div class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                         <dt class="text-sm font-medium leading-6 text-gray-900">Date of Permanency</dt>
-                        <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="service" data-date="authorityDate" data-field="permanency" data-id="' . $rows['serviceid'] . '">' . emptyData("permanency", $rows) . '</dd>
+                        <dd class="mt-1 text-sm flat-pickrEd leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="service" data-date="authorityDate" data-field="permanency" data-id="' . emptyData("serviceid", $rows) . '">' . emptyData("permanency", $rows) . '</dd>
                     </div>
                     <div class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                         <dt class="text-sm font-medium leading-6 text-gray-900">Date of Last Promotion</dt>
-                        <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="service" data-date="authorityDate" data-field="lastPromotion" data-id="' . $rows['serviceid'] . '">' . emptyData("lastPromotion", $rows) . '</dd>
+                        <dd class="mt-1 text-sm flat-pickrSd leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="service" data-date="authorityDate" data-field="lastPromotion" data-id="' . emptyData("serviceid", $rows) . '">' . date('F d, Y', strtotime($lastDatePromotion['datePromotion'])) . '</dd>
                     </div>
                     <div class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                         <dt class="text-sm font-medium leading-6 text-gray-900">Step Increment</dt>
-                        <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="service" data-field="stepIncrement" data-id="' . $rows['serviceid'] . '" >' . emptyData("stepIncrement", $rows) . '</dd>
+                        <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="service" data-field="stepIncrement" data-id="' . emptyData("serviceid", $rows) . '" >' . emptyData("stepIncrement", $rows) . '</dd>
                     </div>
                     <div class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                         <dt class="text-sm font-medium leading-6 text-gray-900">Date of Last Step Increment</dt>
-                        <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="service" data-date="authorityDate" data-field="lastStepIncrement" data-id="' . $rows['serviceid'] . '">' . emptyData("lastStepIncrement", $rows) . '</dd>
+                        <dd class="mt-1 text-sm flat-pickrAd leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="service" data-date="authorityDate" data-field="lastStepIncrement" data-id="' . emptyData("serviceid", $rows) . '">' . emptyData("lastStepIncrement", $rows) . '</dd>
+                    </div>
+                </dl>
+
+                <div class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0 mt-4">
+                        <dt class="text-sm font-medium leading-6 text-gray-900">Promotion History</dt>
+                </div>
+                ';
+            foreach ($rows2 as $data) {
+                echo '
+                <dl class="divide-y divide-gray-100">
+                    <div class="px-5 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                        <dt class="text-sm font-medium leading-6 text-gray-900">Last Position</dt>
+                        <dd class="capitalize flat-pickr mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" data-table="service" data-date="authorityDate" data-field="entered" data-id="">' . emptyData("lastPosition", $data) . '</dd>
+                    </div>
+                    <div class="px-5 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                        <dt class="text-sm font-medium leading-6 text-gray-900">New Position</dt>
+                        <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" data-table="service" data-field="appStatus" data-id="">' . emptyData("newPosition", $data) . '</dd>
+                    </div>
+                        <div class="px-5 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
+                        <dt class="text-sm font-medium leading-6 text-gray-900">Date of Promotion</dt>
+                        <dd class="mt-1 text-sm flat-pickrEd leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" data-table="service" data-date="authorityDate" data-field="permanency" data-id="">' . emptyData("datePromotion", $data) . '</dd>
                     </div>
                 </dl>';
+            }
             break;
         case 'training':
             $query = "SELECT * FROM training WHERE userid = '$userid' ORDER BY dateEnd DESC";
@@ -361,7 +425,7 @@ if (isset($_POST['userid']) && isset($_POST['type'])) {
                                         </div>
                                         <div class="px-5 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                             <dt class="text-sm font-medium leading-6 text-gray-900">Authority Date</dt>
-                                            <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="training" data-date="authorityDate" data-id="' . $rows['trainingid'] . '">' . emptyData("authorityDate", $rows) . '</dd>
+                                            <dd class="mt-1 text-sm  flat-pickrAd leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="training" data-date="authorityDate" data-id="' . $rows['trainingid'] . '">' . emptyData("authorityDate", $rows) . '</dd>
                                         </div>
                                         <div class="px-5 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                             <dt class="text-sm font-medium leading-6 text-gray-900">Attachments</dt>
@@ -446,7 +510,7 @@ if (isset($_POST['userid']) && isset($_POST['type'])) {
                                             </div>
                                             <div class="px-5 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                                 <dt class="text-sm font-medium leading-6 text-gray-900">Authority Date</dt>
-                                                <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="leaves" data-date="training" data-field="authorityDate" data-id="' . $rows['leaveid'] . '">' . emptyData("authorityDate", $rows) . '</dd>
+                                                <dd class="mt-1 text-sm flat-pickrAd leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="leaves" data-date="training" data-field="authorityDate" data-id="' . $rows['leaveid'] . '">' . emptyData("authorityDate", $rows) . '</dd>
                                             </div>
                                             <div class="px-5 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                                 <dt class="text-sm font-medium leading-6 text-gray-900">Status</dt>
@@ -597,11 +661,11 @@ if (isset($_POST['userid']) && isset($_POST['type'])) {
                                                 </div>
                                                 <div class="px-5 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                                     <dt class="text-sm font-medium leading-6 text-gray-900">Date Start</dt>
-                                                    <dd class="capitalize mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0  focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="detail" data-date="training" data-field="dateStart" data-id="' . $rows['detailid'] . '">' . emptyData("dateStart", $rows) . '</dd>
+                                                    <dd class="capitalize flat-pickrSd mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0  focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="detail" data-date="training" data-field="dateStart" data-id="' . $rows['detailid'] . '">' . emptyData("dateStart", $rows) . '</dd>
                                                 </div>
                                                 <div class="px-5 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                                      <dt class="text-sm font-medium leading-6 text-gray-900">Date End</dt>
-                                                    <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="detail" data-date="training" data-field="dateEnd" data-id="' . $rows['detailid'] . '">' . emptyData("dateEnd", $rows) . '</dd>
+                                                    <dd class="mt-1 text-sm flat-pickrEd leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="detail" data-date="training" data-field="dateEnd" data-id="' . $rows['detailid'] . '">' . emptyData("dateEnd", $rows) . '</dd>
                                                 
                                                 </div>
                                                  <div class="px-5 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
@@ -610,7 +674,7 @@ if (isset($_POST['userid']) && isset($_POST['type'])) {
                                                 </div>
                                                 <div class="px-5 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                                     <dt class="text-sm font-medium leading-6 text-gray-900">Authority Date</dt>
-                                                    <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="detail" data-date="training" data-field="authorityDate" data-id="' . $rows['detailid'] . '">' . emptyData("authorityDate", $rows) . '</dd>
+                                                    <dd class="mt-1 text-sm flat-pickrAd leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="detail" data-date="training" data-field="authorityDate" data-id="' . $rows['detailid'] . '">' . emptyData("authorityDate", $rows) . '</dd>
                                                 </div>
                                                 <div class="px-5 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                                     <dt class="text-sm font-medium leading-6 text-gray-900">Status</dt>
@@ -759,11 +823,11 @@ if (isset($_POST['userid']) && isset($_POST['type'])) {
                                                     </div>
                                                     <div class="px-5 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                                         <dt class="text-sm font-medium leading-6 text-gray-900">Date Start</dt>
-                                                        <dd class="capitalize mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0  focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="case" data-date="training" data-field="dateStart" data-id="' . $rows['caseid'] . '">' . emptyData("dateStart", $rows) . '</dd>
+                                                        <dd class="capitalize flat-pickrSd mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0  focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="case" data-date="training" data-field="dateStart" data-id="' . $rows['caseid'] . '">' . emptyData("dateStart", $rows) . '</dd>
                                                     </div>
                                                     <div class="px-5 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                                          <dt class="text-sm font-medium leading-6 text-gray-900">Date End</dt>
-                                                        <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="case" data-date="training" data-field="dateEnd" data-id="' . $rows['caseid'] . '">' . emptyData("dateEnd", $rows) . '</dd>
+                                                        <dd class="mt-1 text-sm flat-pickrEd leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="case" data-date="training" data-field="dateEnd" data-id="' . $rows['caseid'] . '">' . emptyData("dateEnd", $rows) . '</dd>
                                                     
                                                     </div>
                                                      <div class="px-5 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
@@ -772,7 +836,7 @@ if (isset($_POST['userid']) && isset($_POST['type'])) {
                                                     </div>
                                                     <div class="px-5 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                                         <dt class="text-sm font-medium leading-6 text-gray-900">Authority Date</dt>
-                                                        <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="case" data-date="training" data-field="authorityDate" data-id="' . $rows['caseid'] . '">' . emptyData("authorityDate", $rows) . '</dd>
+                                                        <dd class="mt-1 text-sm flat-pickrAd leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="case" data-date="training" data-field="authorityDate" data-id="' . $rows['caseid'] . '">' . emptyData("authorityDate", $rows) . '</dd>
                                                     </div>
                                                     <div class="px-5 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                                                         <dt class="text-sm font-medium leading-6 text-gray-900">Status</dt>

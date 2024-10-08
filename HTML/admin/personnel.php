@@ -34,12 +34,8 @@ if (!isset($_SESSION['adminid'])) {
     $adminid = $_SESSION['adminid'];
     $active = "Personnel";
     $log = 0;
-    include "sideBar.php";
     include "../../Connections/Include.php";
-
-    // $query2 = "SELECT COUNT(facultyid) as total FROM faculty";
-    // $results2 = mysqli_query($conn, $query2);
-    // $row2 = mysqli_fetch_array($results2);
+    include "sideBar.php";
     ?>
     <div class="main">
         <div class="row">
@@ -66,7 +62,7 @@ if (!isset($_SESSION['adminid'])) {
                     $query1 = "SELECT * 
                     FROM user
                     INNER JOIN account ON user.userid = account.userid
-                    INNER JOIN plantilla ON plantilla.itemNumber = account.itemNumber";
+                    INNER JOIN plantilla ON plantilla.itemNumber = account.itemNumber WHERE account.isArchive = TRUE";
                     $results1 = mysqli_query($conn, $query1);
 
                     if (mysqli_num_rows($results1) > 0) {
@@ -105,7 +101,7 @@ if (!isset($_SESSION['adminid'])) {
             <div class="modal-dialog modal-dialog-centered modal-lg">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h1 class="modal-title fs-5" id="staticBackdropLabel">Add Personnel</h1>
+                        <h1 class="modal-title fs-5" id="staticBackdropLabel">Account Requests</h1>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">

@@ -54,7 +54,7 @@ if (isset($_POST['submit'])) {
 
         if (mysqli_query($conn, $insert)) {
             logAction($conn, $_SESSION['userid'], 'Add personal information', $_SESSION['type']);
-            echo "<script>window.location.href='../personalInformation.php?userid=$userid&alert=1';</script>";
+            echo "<script>window.location.href='../personalInformation.php?userid=$userid&alert=success&message=Saved Successfully';</script>";
         } else {
             echo mysqli_error($conn);
         }
@@ -67,7 +67,7 @@ if (isset($_POST['submit'])) {
 
         if (mysqli_query($conn, $query)) {
             logAction($conn, $_SESSION['userid'], 'Update personal information', $_SESSION['type']);
-            echo "<script>window.location.href='../personalInformation.php?userid=$userid&alert=1';</script>";
+            echo "<script>window.location.href='../personalInformation.php?userid=$userid&alert=success&message=Saved Successfully';</script>";
         } else {
             echo mysqli_error($conn);
         }

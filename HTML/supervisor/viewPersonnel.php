@@ -227,9 +227,35 @@ include_once "components/index.php";
                 $(".loading").fadeIn(300);
             });
 
+            function initializeFlatpickr(selector) {
+                $(selector).flatpickr({
+                    dateFormat: "F j, Y",
+                    onChange: function(selectedDates, dateStr, instance) {
+                        $(selector).text(dateStr); // Update the element with the formatted date
+                    }
+                });
+            }
+
+            var userId = null;
+
+            const tableMappings = {
+                personal: 'personal',
+                address: 'address',
+                family: 'family',
+                education: 'education',
+                eligibility: 'eligibility',
+                service: 'service',
+                detail: 'detail',
+                training: 'training',
+                leaves: 'leave',
+                case: 'criminal',
+                documents: 'documents',
+            };
+
+
             $('.dropdown-link').on('click', function(e) {
                 e.preventDefault();
-                const userId = $(this).data('userid');
+                userId = $(this).data('userid');
                 const type = $(this).attr('id');
 
                 $('.absolute').addClass('hidden');
@@ -300,6 +326,10 @@ include_once "components/index.php";
                         $('#user-info').html(data);
                         makeEditable();
                         saveDetailOrders(userId);
+                        initializeFlatpickr(".flat-pickrAd");
+                        initializeFlatpickr(".flat-pickrEd");
+                        initializeFlatpickr(".flat-pickrSd");
+                        initializeFlatpickr(".flat-pickr");
                     },
                     error: function(jqXHR, textStatus, errorThrown) {
                         alert('Error fetching data: ' + textStatus);
@@ -334,17 +364,23 @@ include_once "components/index.php";
                         $(this).blur(); // Deselect the contenteditable
                     }
                 });
-
-                $('[contenteditable="true"]').on('blur', function() {
-                    // Check if Enter was pressed before calling updateContent
-                    if (!$(this).data('enterPressed')) {
-                        updateContent($(this)); // Update on blur if not Enter
-                    }
-                    $(this).data('enterPressed', false); // Reset the flag
-                });
-
+                // $('[contenteditable="true"]').on('blur', function() {
+                //     // Only load user info if Enter was not pressed
+                //     if (!$(this).data('enterPressed')) {
+                //         updateContent($(this)); // Update on blur if not Enter
+                //     }
+                //     $(this).data('enterPressed', false); // Reset the flag
+                // });
                 $('select[data-table]').on('change', function() {
-                    updateContent($(this)); // Call updateContent on change
+
+                    updateContent($(this));
+
+                    var tables = $(this).data('table');
+                    if (tableMappings[tables]) {
+                        loadUserInfo(userId, tableMappings[tables]);
+                    }
+
+                    // Call updateContent on change
                 });
             }
 
@@ -369,8 +405,10 @@ include_once "components/index.php";
 
                             if (tables == 'detail') {
                                 loadUserInfo(userId, 'detail');
-                            } else {
+                            } else if (tables == 'case') {
                                 loadUserInfo(userId, 'criminal');
+                            } else {
+                                loadUserInfo(userId, 'service');
                             }
 
                             console.log(response);
@@ -398,6 +436,11 @@ include_once "components/index.php";
                     success: function(data) {
                         $("#user-info").html(data); // Load updated data into the div
                         saveDetailOrders(userid);
+                        makeEditable();
+                        initializeFlatpickr(".flat-pickrAd");
+                        initializeFlatpickr(".flat-pickrEd");
+                        initializeFlatpickr(".flat-pickrSd");
+                        initializeFlatpickr(".flat-pickr");
                     },
                     error: function(xhr, status, error) {
                         console.error("An error occurred: " + error);
@@ -430,7 +473,6 @@ include_once "components/index.php";
                         return; // Stop execution if invalid
                     }
                 }
-
                 // Send the content to your server via AJAX
                 $.ajax({
                     type: "POST",

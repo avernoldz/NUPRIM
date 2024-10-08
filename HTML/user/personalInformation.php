@@ -37,6 +37,12 @@ include_once "components/index.php";
     $query1 = "SELECT * FROM user WHERE userid = '$userid'";
     $results1 = mysqli_query($conn, $query1);
     $row1 = mysqli_fetch_array($results1);
+
+    if (isset($_GET['alert']) && isset($_GET['message'])) {
+        $alertType = $_GET['alert'];
+        $alertMessage = urldecode($_GET['message']);
+        showToastr($alertMessage, $alertType);
+    }
     ?>
     <div class="main">
         <div class="row bg">
@@ -142,7 +148,7 @@ include_once "components/index.php";
             </div>
         </form>
     </div>
-
+    <script src="../JS/app.js"></script>
     <script>
         $('#edit').click(function() {
             $("#forms :input").prop("disabled", false);

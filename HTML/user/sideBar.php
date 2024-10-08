@@ -119,6 +119,15 @@
                             </li>
                         </a>
 
+                        <a
+                            href="action/pds.php?userid=<?php echo $userid ?>">
+                            <li class="navi <?php if ($active == "PDS") {
+                                                echo "active";
+                                            } ?>">
+                                <i class="fa-solid fa-file-export fa-fw"></i> <span>Personal Data Sheet</span>
+                            </li>
+                        </a>
+
                     </ul>
 
                     <a
@@ -130,14 +139,44 @@
                             <span>My Documents</span>
                         </li>
                     </a>
+
                     <a
-                        href="ipcr.php?userid=<?php echo $userid ?>">
-                        <li class="navi <?php if ($active == "IPCR") {
+                        href="#" id="ipcr-drop">
+                        <li class="navi <?php if ($active == "My Profile") {
                                             echo "active";
-                                        } ?>">
-                            <i class="fa-solid fa-file fa-fw"></i> <span>IPCR</span>
+                                        }
+                                        if ($on == "on") {
+                                            echo "block";
+                                        }; ?>">
+                            <i class="fa-solid fa-file fa-fw"></i>
+                            <span>IPCR</span>
                         </li>
                     </a>
+
+                    <ul class="drop-ipcr <?php if ($on == "on") {
+                                                echo "block";
+                                            } else {
+                                                echo "hidden";
+                                            } ?>">
+                        <a
+                            href="ipcr.php?userid=<?php echo $userid ?>">
+                            <li class="navi <?php if ($active == "IPCR") {
+                                                echo "active";
+                                            } ?>">
+                                <i class="fa-solid fa-file fa-fw"></i> <span>IPCR Reports</span>
+                            </li>
+                        </a>
+
+                        <a
+                            href="ipcrDocuments.php?userid=<?php echo $userid ?>">
+                            <li class="navi <?php if ($active == "IPCR Docs") {
+                                                echo "active";
+                                            } ?>">
+                                <i class="fa-solid fa-folder-open fa-fw"></i> <span>Accomplishments</span>
+                            </li>
+                        </a>
+                    </ul>
+
                     <a
                         href="settings.php?userid=<?php echo $userid ?>">
                         <li class="navi <?php if ($active == "Settings") {
@@ -173,5 +212,10 @@
         $('#profile-drop').click(function() {
             $('.drop-profile').slideToggle("fast", "linear");
         });
+
+        $('#ipcr-drop').click(function() {
+            $('.drop-ipcr').slideToggle("fast", "linear");
+        });
+
     })
 </script>

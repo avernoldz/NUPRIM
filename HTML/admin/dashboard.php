@@ -30,8 +30,8 @@ if (!isset($_SESSION['adminid'])) {
     $adminid = $_SESSION['adminid'];
     $active = "dashboard";
     $log = 0;
-    include "sideBar.php";
     include "../../Connections/Include.php";
+    include "sideBar.php";
 
     $query1 = "SELECT 
                 COUNT(CASE WHEN type = 'User' THEN userid END) AS total_users,

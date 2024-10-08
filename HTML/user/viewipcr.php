@@ -2,8 +2,8 @@
 session_start();
 session_regenerate_id();
 
-if (!$_SESSION['supervisorid']) {
-    header("Location:signin.php?login-first");
+if (!$_SESSION['userid']) {
+    header("Location:../index.php?login-first");
 }
 
 include_once "../user/components/index.php";
@@ -107,11 +107,7 @@ include_once "../user/components/index.php";
     $supportData = json_decode($rows['support'], true);
 
     ?>
-    <div class="overlay loading">
-        <div class="spinner-grow text-light" role="status">
-            <span class="visually-hidden"></span>
-        </div>
-    </div>
+
     <div class="row w-100">
         <div class="row w-100">
             <h1 class="font-bold text-center">PHILIPPINE NATIONAL POLICE</h1>

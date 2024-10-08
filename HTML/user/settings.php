@@ -3,7 +3,7 @@ session_start();
 session_regenerate_id();
 
 if (!$_SESSION['userid']) {
-    header("Location:signin.php?login-first");
+    header("Location:../index.php?login-first");
 }
 
 include_once "components/index.php";
@@ -38,6 +38,13 @@ include_once "components/index.php";
     $query1 = "SELECT * FROM account WHERE userid = '$userid'";
     $results1 = mysqli_query($conn, $query1);
     $row1 = mysqli_fetch_array($results1);
+
+    if (isset($_GET['alert']) && isset($_GET['message'])) {
+        $alertType = $_GET['alert'];
+        $alertMessage = urldecode($_GET['message']);
+        showToastr($alertMessage, $alertType);
+    }
+
     ?>
     <div class="main">
         <div class="row bg">
@@ -58,7 +65,7 @@ include_once "components/index.php";
                 </div>
             </div>
 
-            <form action="" method="POST" id="forms">
+            <form action="action/settings.php" method="POST" id="forms">
                 <div class="row bg column-gap-3">
                     <div class="col-6 mb-2">
                         <label for="username" class="form-label">Username</label>
@@ -73,6 +80,7 @@ include_once "components/index.php";
                     <div class="col-6 mb-2">
                         <label for="opassword" class="form-label">Old Password</label>
                         <input type="password" id="opassword" class="form-control" name="opassword" value="<?php echo emptyData("fatherSrname", $row1) ?>" required disabled>
+                        <small class="text-danger opass" style="display: none;">Old Password do not match</small>
                     </div>
                     <div class="w-100"></div>
 
@@ -84,24 +92,27 @@ include_once "components/index.php";
                     <div class="col mb-2">
                         <label for="cpassword" class="form-label">Confirm New Password</label>
                         <input type="password" id="cpassword" class="form-control" name="cpassword" disabled>
+                        <small class="text-danger cpass" style="display: none;">Password do not match</small>
                     </div>
+                    <input type="hidden" name="userid" id="opassword2" value="<?php echo $row1['password'] ?>">
                     <input type="hidden" name="userid" value="<?php echo $userid ?>">
                 </div>
             </form>
         </div>
+        <script src="../JS/app.js"></script>
         <script>
             $('#edit').click(function() {
                 $("#forms .country, #forms input").prop("disabled", false);
                 $('#save-cancel').css("display", "block");
                 $('#edit').css("display", "none");
             })
-
             $('#cancel').click(function() {
                 $("#forms :input").prop("disabled", true);
                 $('#save-cancel').css("display", "none");
                 $('#edit').css("display", "block");
             })
         </script>
+
 </body>
 
 </html>

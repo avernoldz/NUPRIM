@@ -34,10 +34,10 @@ include_once "components/index.php";
     include "../../Connections/Include.php";
     include "sideBar.php";
 
-    $query1 = "SELECT designation FROM account INNER JOIN plantilla ON account.itemNumber = plantilla.itemNumber WHERE userid = '$supervisorid'";
+    $query1 = "SELECT station FROM account INNER JOIN plantilla ON account.itemNumber = plantilla.itemNumber WHERE userid = '$supervisorid'";
     $results1 = mysqli_query($conn, $query1);
     $row1 = mysqli_fetch_array($results1);
-    $designation = $row1['designation']
+    $station = $row1['station'];
     ?>
     <div class="main ">
         <div class="row bg">
@@ -64,7 +64,7 @@ include_once "components/index.php";
                     FROM user
                     INNER JOIN account ON user.userid = account.userid
                     INNER JOIN plantilla ON plantilla.itemNumber = account.itemNumber
-                    WHERE plantilla.designation = '$designation'";
+                    WHERE plantilla.station = '$station' AND account.isArchive = TRUE";
                     $results1 = mysqli_query($conn, $query1);
 
                     if (mysqli_num_rows($results1) > 0) {
