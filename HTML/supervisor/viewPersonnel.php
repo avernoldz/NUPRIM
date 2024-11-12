@@ -49,6 +49,16 @@ include_once "components/index.php";
             top: 50%;
             left: 50%;
         }
+
+        .data:nth-of-type(odd) {
+            background-color: #f9fafb;
+        }
+
+        .data:hover {
+            box-shadow: inset 1px 0 0 #dadce0, inset -1px 0 0 #dadce0, 2px 2px 2px 0 rgba(60, 64, 67, .3), 0 1px 3px 1px rgba(60, 64, 67, .15);
+            z-index: 2000;
+            cursor: pointer;
+        }
     </style>
 </head>
 
@@ -62,9 +72,41 @@ include_once "components/index.php";
     include "../../Connections/Include.php";
     include "sideBar.php";
 
+    list($semester, $year) = getSemester();
     $query1 = "SELECT * FROM user WHERE userid = '$userid'";
     $results1 = mysqli_query($conn, $query1);
     $rows = mysqli_fetch_array($results1);
+
+    $chart = "SELECT year, semester, userid, finalRating, q, t, e FROM ipcr WHERE userid = '$userid' ORDER BY year DESC LIMIT 6";
+    $resChart = mysqli_query($conn, $chart);
+
+    // Initialize arrays to hold data
+    $labels = [];
+    $dataArray = [
+        'Final Rating' => [],
+        'Q Rating' => [],
+        'T Rating' => [],
+        'E Rating' => []
+    ];
+
+    // Fetch all rows
+    while ($rowChart = mysqli_fetch_assoc($resChart)) {
+        $parts = explode(' ', $rowChart['semester']);
+        $sem = $parts[0];
+        $labels[] = $sem . " " . $rowChart['year']; // Assuming semester is the label
+        $dataArray['Final Rating'][] = isset($rowChart['finalRating']) ? $rowChart['finalRating'] : 0;
+        $dataArray['Q Rating'][] = isset($rowChart['q']) ? $rowChart['q'] : 0;
+        $dataArray['T Rating'][] = isset($rowChart['t']) ? $rowChart['t'] : 0;
+        $dataArray['E Rating'][] = isset($rowChart['e']) ? $rowChart['e'] : 0;
+    }
+
+    // Convert to JSON
+    $labelsJson = json_encode($labels);
+    $dataJson = json_encode(array_map(null, ...array_values($dataArray)));
+
+    $res2 = select($conn, 'leaves', $userid);
+    $res3 = select($conn, '`case`', $userid);
+    $res4 = select($conn, '`detail`', $userid);
 
     ?>
     <div class="overlay loading">
@@ -76,7 +118,7 @@ include_once "components/index.php";
     <div class="main ">
         <div class="row bg">
             <div class="col">
-                <h1>IPCR /&nbsp;&nbsp;<span class="text-[#737373]"><?php echo $rows['firstname'] . ' ' . ($rows['middlename'] ? $rows['middlename'] . ' ' : '') . $rows['lastname']; ?></span></h1>
+                <h1>NUPRIM /&nbsp;&nbsp;<span class="text-[#737373]"><?php echo $rows['firstname'] . ' ' . ($rows['middlename'] ? $rows['middlename'] . ' ' : '') . $rows['lastname']; ?></span></h1>
             </div>
         </div>
 
@@ -84,8 +126,8 @@ include_once "components/index.php";
             <div>
                 <div class="px-4 sm:px-0 flex">
                     <div>
-                        <h3 class="text-base font-semibold leading-7 text-gray-900 header">Personnel Information</h3>
-                        <p class="mt-1 max-w-2xl text-sm leading-6 text-gray-500 sub-header">Personal details and information.</p>
+                        <h3 class="text-base font-semibold leading-7 text-gray-900 header">Overview</h3>
+                        <p class="mt-1 max-w-2xl text-sm leading-6 text-gray-500 sub-header">Overview of personal details and information.</p>
                     </div>
                     <div class="relative inline-block text-left">
                         <div>
@@ -93,7 +135,8 @@ include_once "components/index.php";
                         </div>
                         <div class="absolute right-0 z-10 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 transition-all duration-200 ease-in-out hidden" role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1">
                             <div class="py-1" role="none">
-                                <a href="#" class="dropdown-link bg-gray-100 text-gray-900 block px-4 py-2 text-sm text-gray-700" data-userid="<?php echo $userid; ?>" id="personal" role="menuitem" tabindex="-1"><i class="fa-solid fa-circle-info fa-fw mr-2 text-[#7b8087]"></i>Personal Information</a>
+                                <a href="#" class="dropdown-link bg-gray-100 text-gray-900 block px-4 py-2 text-sm text-gray-700" data-userid="<?php echo $userid; ?>" id="overview" role="menuitem" tabindex="-1"><i class="fa-solid fa-rectangle-list fa-fw mr-2 text-[#7b8087]"></i>Overview</a>
+                                <a href="#" class="dropdown-link block px-4 py-2 text-sm text-gray-700" data-userid="<?php echo $userid; ?>" id="personal" role="menuitem" tabindex="-1"><i class="fa-solid fa-circle-info fa-fw mr-2 text-[#7b8087]"></i>Personal Information</a>
                                 <a href="#" class="dropdown-link block px-4 py-2 text-sm text-gray-700" data-userid="<?php echo $userid; ?>" id="address" role="menuitem" tabindex="-1"><i class="fa-solid fa-location-dot fa-fw mr-2 text-[#7b8087]"></i>Address</a>
                                 <a href="#" class="dropdown-link block px-4 py-2 text-sm text-gray-700" data-userid="<?php echo $userid; ?>" id="family" role="menuitem" tabindex="-1"><i class="fa-solid fa-people-group fa-fw mr-2 text-[#7b8087]"></i>Family</a>
                                 <a href="#" class="dropdown-link block px-4 py-2 text-sm text-gray-700" data-userid="<?php echo $userid; ?>" id="education" role="menuitem" tabindex="-1"><i class="fa-solid fa-book-open fa-fw mr-2 text-[#7b8087]"></i>Education</a>
@@ -109,111 +152,110 @@ include_once "components/index.php";
                     </div>
                 </div>
                 <div class="mt-6 border-t border-gray-100" id="user-info">
-                    <dl class="divide-y divide-gray-100">
-                        <div class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                            <dt class="text-sm font-medium leading-6 text-gray-900">User ID</dt>
-                            <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0"><?php echo $userid ?></dd>
+                    <div class="grid grid-cols-5 grid-rows-5 gap-4 mt-3">
+                        <div class="col-span-3 box row-span-3 border border-gray-500">
+                            <div class="title mb-2">
+                                <p class="font-medium">IPCR Latest Rating</p>
+                                <p class="text-[11px] text-gray-500">Current Semester Ratings</p>
+                            </div>
+                            <div>
+                                <canvas id="myChart" class="w-100"></canvas>
+                            </div>
                         </div>
-                        <div class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                            <dt class="text-sm font-medium leading-6 text-gray-900">Full Name</dt>
-                            <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0"><?php echo $rows['firstname'] . ' ' . ($rows['middlename'] ? $rows['middlename'] . ' ' : '') . $rows['lastname']; ?></dd>
+                        <div class="col-span-2 row-span-2 col-start-4">
+                            <div class="box border border-gray-500 h-100 border border-gray-500">
+                                <div class="title mb-2">
+                                    <p class="font-medium">Filed Leaves</p>
+                                    <p class="text-[11px] text-gray-500">User pending and approved leaves</p>
+                                </div>
+                                <div class="w-100 mt-3 overflow-auto h-64">
+                                    <?php renderLeaveList($res2, null); ?>
+                                </div>
+                            </div>
                         </div>
-                        <div class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                            <dt class="text-sm font-medium leading-6 text-gray-900">Gender</dt>
-                            <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0"><?php echo $rows['gender']; ?></dd>
+                        <div class="col-span-2 row-span-3 col-start-4 row-start-3">
+                            <div class="box border border-gray-500 h-100">
+                                <div class="title mb-2">
+                                    <p class="font-medium">Detail Orders</p>
+                                    <p class="text-[11px] text-gray-500">User pending and approved orders</p>
+                                </div>
+                                <div class="w-100 mt-3 overflow-auto h-64">
+                                    <?php renderLeaveList($res4, null); ?>
+                                </div>
+                            </div>
                         </div>
-                        <div class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                            <dt class="text-sm font-medium leading-6 text-gray-900">Qualifier</dt>
-                            <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="user" data-field="qualifier" data-id="<?php echo $rows['infoid'] ?>"><?php echo $rows['qualifier']; ?></dd>
-                        </div>
-                        <div class=" px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                            <dt class="text-sm font-medium leading-6 text-gray-900">Status</dt>
-                            <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="user" data-field="status" data-id="<?php echo $rows['infoid'] ?>"><?php echo $rows['status']; ?></dd>
-                        </div>
-                        <div class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                            <dt class="text-sm font-medium leading-6 text-gray-900">Date of Birth</dt>
-                            <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0"><?php echo emptyData("dateOfBirth", $rows) ?></dd>
-                        </div>
-                        <div class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                            <dt class="text-sm font-medium leading-6 text-gray-900">Place of Birth</dt>
-                            <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0"><?php echo $rows['placeOfBirth']; ?></dd>
-                        </div>
-                        <div class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                            <dt class="text-sm font-medium leading-6 text-gray-900">Contact Number</dt>
-                            <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="user" data-field="contactNumber" data-id="<?php echo $rows['infoid'] ?>"><?php echo $rows['contactNumber']; ?></dd>
-                        </div>
-                        <div class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                            <dt class="text-sm font-medium leading-6 text-gray-900">Weight</dt>
-                            <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="user" data-field="weight" data-id="<?php echo $rows['infoid'] ?>"><?php echo $rows['weight']; ?></dd>
-                        </div>
-                        <div class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                            <dt class="text-sm font-medium leading-6 text-gray-900">Height</dt>
-                            <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="user" data-field="height" data-id="<?php echo $rows['infoid'] ?>"><?php echo $rows['height']; ?></dd>
-                        </div>
-                        <div class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                            <dt class="text-sm font-medium leading-6 text-gray-900">Blood Type</dt>
-                            <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="user" data-field="bloodType" data-id="<?php echo $rows['infoid'] ?>"><?php echo $rows['bloodType']; ?></dd>
-                        </div>
-                        <div class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                            <dt class="text-sm font-medium leading-6 text-gray-900">GSIS</dt>
-                            <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="user" data-field="GSIS" data-id="<?php echo $rows['infoid'] ?>"><?php echo $rows['GSIS']; ?></dd>
-                        </div>
-                        <div class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                            <dt class="text-sm font-medium leading-6 text-gray-900">Pag-IBIG</dt>
-                            <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="user" data-field="Pagibig" data-id="<?php echo $rows['infoid'] ?>"><?php echo $rows['Pagibig']; ?></dd>
-                        </div>
-                        <div class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                            <dt class="text-sm font-medium leading-6 text-gray-900">PhilHealth</dt>
-                            <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="user" data-field="Philhealth" data-id="<?php echo $rows['infoid'] ?>"><?php echo $rows['Philhealth']; ?></dd>
-                        </div>
-                        <div class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                            <dt class="text-sm font-medium leading-6 text-gray-900">SSS</dt>
-                            <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="user" data-field="SSS" data-id="<?php echo $rows['infoid'] ?>"><?php echo $rows['SSS']; ?></dd>
-                        </div>
-                        <div class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                            <dt class="text-sm font-medium leading-6 text-gray-900">TIN</dt>
-                            <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="user" data-field="TIN" data-id="<?php echo $rows['infoid'] ?>"><?php echo $rows['TIN']; ?></dd>
-                        </div>
-                        <div class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                            <dt class="text-sm font-medium leading-6 text-gray-900">PNPID</dt>
-                            <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="user" data-field="PNPID" data-id="<?php echo $rows['infoid'] ?>"><?php echo $rows['PNPID']; ?></dd>
-                        </div>
-                        <div class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                            <dt class="text-sm font-medium leading-6 text-gray-900">Attachments</dt>
-                            <dd class="mt-2 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
-                                <ul role="list" class="divide-y divide-gray-100 rounded-md border border-gray-200">
-                                    <li class="flex items-center justify-between py-4 pl-4 pr-5 text-sm leading-6">
-                                        <div class="flex w-0 flex-1 items-center">
-                                            <svg class="h-5 w-5 flex-shrink-0 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                                <path fill-rule="evenodd" d="M15.621 4.379a3 3 0 00-4.242 0l-7 7a3 3 0 004.241 4.243h.001l.497-.5a.75.75 0 011.064 1.057l-.498.501-.002.002a4.5 4.5 0 01-6.364-6.364l7-7a4.5 4.5 0 016.368 6.36l-3.455 3.553A2.625 2.625 0 119.52 9.52l3.45-3.451a.75.75 0 111.061 1.06l-3.45 3.451a1.125 1.125 0 001.587 1.595l3.454-3.553a3 3 0 000-4.242z" clip-rule="evenodd" />
-                                            </svg>
-                                            <div class="ml-4 flex min-w-0 flex-1 gap-2">
-                                                <span class="truncate font-medium">resume_back_end_developer.pdf</span>
-                                                <span class="flex-shrink-0 text-gray-400">2.4mb</span>
+                        <div class="col-span-2 row-span-2 row-start-4 col-start-2">
+                            <div class="box border border-gray-500 h-full flex flex-col">
+                                <div class="title mb-2">
+                                    <p class="font-medium">IPCR</p>
+                                    <p class="text-[11px] text-gray-500">User pending and approved IPCR</p>
+                                </div>
+                                <div class="w-100 mt-3 overflow-auto h-64">
+                                    <?php
+
+                                    $query2 = "SELECT * FROM ipcr WHERE userid = '$userid' ORDER BY created_at DESC";
+                                    $results2 = mysqli_query($conn, $query2);
+
+                                    if (mysqli_num_rows($results2) > 0) {
+                                        while ($row2 = mysqli_fetch_array($results2)) {
+                                            $i = 1;
+
+                                            if ($row2['status'] == 'Waiting for Approval') {
+                                                $stat = '<label class="form-label bg-yellow-100 text-xs rounded p-1 mb-0 text-yellow-700 w-500 px-2 border-1 border-yellow-300">Pending</label>';
+                                            } elseif ($row2['status'] == 'Approved') {
+                                                $stat = '<label class="form-label bg-green-100 text-xs rounded p-1 mb-0 text-green-700 w-500 px-2 border-1 border-green-300">Approved</label>';
+                                            } else {
+                                                $stat = '<label class="form-label bg-red-100 text-xs rounded p-1 mb-0 text-red-700 w-500 px-2 border-1 border-red-300">Rejected</label>';
+                                            }
+                                    ?>
+                                            <div class="ipcr col-12 p-2 flex data flex-wrap justify-between items-center bg-gray-100">
+                                                <h2 class="font-bold ml-5">IPCR -
+                                                    <span class="font-normal"><?php echo emptyData("semester", $row2) . ' (' . emptyData("year", $row2) . ')' ?></span>
+                                                </h2>
+                                                <h2 class="font-bold">
+                                                    <span class="font-normal">Rating - </span> <?php echo emptyData("finalRating", $row2) ?>
+                                                </h2>
+                                                <div class="col-3 text-center">
+                                                    <span class="mr-5"><?php echo $stat; ?></span>
+                                                    <a href="generate.php?ipcr=<?php echo $row2["ipcrid"] ?>&userid=<?php echo $userid ?>" class=" hover:bg-gray-300 hover:rounded-full p-2"><i class="fa-regular fa-eye fa-fw text-gray-600"></i></a>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div class="ml-4 flex-shrink-0">
-                                            <a href="#" class="font-medium text-indigo-600 hover:text-indigo-500">Download</a>
-                                        </div>
-                                    </li>
-                                    <li class="flex items-center justify-between py-4 pl-4 pr-5 text-sm leading-6">
-                                        <div class="flex w-0 flex-1 items-center">
-                                            <svg class="h-5 w-5 flex-shrink-0 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                                <path fill-rule="evenodd" d="M15.621 4.379a3 3 0 00-4.242 0l-7 7a3 3 0 004.241 4.243h.001l.497-.5a.75.75 0 011.064 1.057l-.498.501-.002.002a4.5 4.5 0 01-6.364-6.364l7-7a4.5 4.5 0 016.368 6.36l-3.455 3.553A2.625 2.625 0 119.52 9.52l3.45-3.451a.75.75 0 111.061 1.06l-3.45 3.451a1.125 1.125 0 001.587 1.595l3.454-3.553a3 3 0 000-4.242z" clip-rule="evenodd" />
-                                            </svg>
-                                            <div class="ml-4 flex min-w-0 flex-1 gap-2">
-                                                <span class="truncate font-medium">coverletter_back_end_developer.pdf</span>
-                                                <span class="flex-shrink-0 text-gray-400">4.5mb</span>
-                                            </div>
-                                        </div>
-                                        <div class="ml-4 flex-shrink-0">
-                                            <a href="#" class="font-medium text-indigo-600 hover:text-indigo-500">Download</a>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </dd>
+                                    <?php
+                                            $i++;
+                                        }
+                                    } else {
+                                        echo "<p class='text-center'>No data</p>";
+                                    }
+                                    ?>
+                                </div>
+                            </div>
                         </div>
-                    </dl>
+                        <div class="row-span-2 row-start-4  ">
+                            <div class="box border border-gray-500 h-full flex flex-col">
+                                <div class="title mb-2">
+                                    <p class="font-medium">Percentage Difference Ratings</p>
+                                    <p class="text-[11px] text-gray-500" id="dlm">Last Semester and Current Semester</p>
+                                </div>
+
+                                <?php
+                                $percentageRes = compareLastSemRating($conn, $station, $semester, $userid);
+                                $isPositive = strpos($percentageRes['percentage'], '+') !== false; // Check if the difference is positive
+                                ?>
+
+                                <div class="flex-grow flex items-center justify-center">
+                                    <h3 class="text-8xl font-bold <?php echo $isPositive ? 'text-green-600' : 'text-red-600'; ?>"><?php echo number_format($percentageRes['avg'], 2) ?></h3>
+                                    <h3 class="text-center text-2xl font-bold 
+                                        <?php echo $isPositive ? 'text-green-600' : 'text-red-600'; ?>
+                                        flex items-center">
+                                        <span class="<?php echo $isPositive ? 'text-green-600' : 'text-red-600'; ?> mr-2">
+                                            <?php echo $isPositive ? '<i class="fa-solid fa-arrow-up-long rotate-45"></i>' : '<i class="fa-solid fa-arrow-down-long rotate-45"></i>'; ?> <!-- Arrow icon -->
+                                        </span>
+                                        <?php echo $percentageRes['percentage'] ?>
+                                    </h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -223,13 +265,132 @@ include_once "components/index.php";
     <script>
         $(document).ready(function() {
 
+            var labels = <?php echo $labelsJson; ?>; // Use the labels from PHP
+            var data = <?php echo $dataJson; ?>;
+
+            function createChart(labels, data) {
+                var ctx = document.getElementById('myChart').getContext('2d');
+
+                // Lighter transparent colors with borders
+                var colors = [{
+                        backgroundColor: 'rgba(242, 143, 155, 0.5)',
+                        borderColor: '#f28f9b'
+                    }, // Transparent pinkish-red
+                    {
+                        backgroundColor: 'rgba(106, 141, 245, 0.5)',
+                        borderColor: '#6a8df5'
+                    }, // Transparent blue
+                    {
+                        backgroundColor: 'rgba(98, 216, 140, 0.5)',
+                        borderColor: '#62d88c'
+                    }, // Transparent green
+                    {
+                        backgroundColor: 'rgba(169, 107, 247, 0.5)',
+                        borderColor: '#a96bf7'
+                    }, // Transparent purple
+                ];
+
+                var datasets = [{
+                        label: 'Final Rating',
+                        data: data.map(row => row[0]), // Accessing the first column for Final Rating
+                        backgroundColor: colors[0].backgroundColor,
+                        borderColor: colors[0].borderColor,
+                        borderWidth: 2, // Border thickness
+                        barThickness: 25,
+                        borderRadius: 5, // Rounded corners for the bars (optional)
+                    },
+                    {
+                        label: 'Q Rating',
+                        data: data.map(row => row[1]), // Accessing the second column for Q Rating
+                        backgroundColor: colors[1].backgroundColor,
+                        borderColor: colors[1].borderColor,
+                        borderWidth: 2,
+                        barThickness: 25,
+                        borderRadius: 5,
+                    },
+                    {
+                        label: 'T Rating',
+                        data: data.map(row => row[2]), // Accessing the third column for T Rating
+                        backgroundColor: colors[2].backgroundColor,
+                        borderColor: colors[2].borderColor,
+                        borderWidth: 2,
+                        barThickness: 25,
+                        borderRadius: 5,
+                    },
+                    {
+                        label: 'E Rating',
+                        data: data.map(row => row[3]), // Accessing the fourth column for E Rating
+                        backgroundColor: colors[3].backgroundColor,
+                        borderColor: colors[3].borderColor,
+                        borderWidth: 2,
+                        barThickness: 25,
+                        borderRadius: 5,
+                    }
+                ];
+
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: datasets
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                min: 0,
+                                max: 5 // Adjust as needed
+                            }
+                        },
+                        animations: {
+                            tension: {
+                                duration: 1000,
+                                easing: 'linear',
+                                from: 1,
+                                to: 0,
+                                loop: true
+                            }
+                        }
+                    }
+                });
+            }
+
+            createChart(labels, data);
+
+
             $(document).ajaxSend(function() {
                 $(".loading").fadeIn(300);
             });
 
+            function initializeFlatpickr(selector) {
+                $(selector).flatpickr({
+                    dateFormat: "F j, Y",
+                    onChange: function(selectedDates, dateStr, instance) {
+                        $(selector).text(dateStr); // Update the element with the formatted date
+                    }
+                });
+            }
+
+            var userId = null;
+
+            const tableMappings = {
+                personal: 'personal',
+                address: 'address',
+                family: 'family',
+                education: 'education',
+                eligibility: 'eligibility',
+                service: 'service',
+                detail: 'detail',
+                training: 'training',
+                leaves: 'leave',
+                case: 'criminal',
+                documents: 'documents',
+            };
+
+
             $('.dropdown-link').on('click', function(e) {
                 e.preventDefault();
-                const userId = $(this).data('userid');
+                userId = $(this).data('userid');
                 const type = $(this).attr('id');
 
                 $('.absolute').addClass('hidden');
@@ -237,6 +398,10 @@ include_once "components/index.php";
                 let header, subheader;
 
                 switch (type) {
+                    case 'overview':
+                        header = 'Overview';
+                        subheader = 'Overview of personal details and information.';
+                        break;
                     case 'personal':
                         header = 'Personnel Information';
                         subheader = 'Personal details and information.';
@@ -298,8 +463,19 @@ include_once "components/index.php";
                     },
                     success: function(data) {
                         $('#user-info').html(data);
+
+                        if (type == 'overview') {
+                            var labels = <?php echo $labelsJson; ?>; // Use the labels from PHP
+                            var data = <?php echo $dataJson; ?>;
+                            createChart(labels, data);
+                        }
+
                         makeEditable();
                         saveDetailOrders(userId);
+                        initializeFlatpickr(".flat-pickrAd");
+                        initializeFlatpickr(".flat-pickrEd");
+                        initializeFlatpickr(".flat-pickrSd");
+                        initializeFlatpickr(".flat-pickr");
                     },
                     error: function(jqXHR, textStatus, errorThrown) {
                         alert('Error fetching data: ' + textStatus);
@@ -334,17 +510,23 @@ include_once "components/index.php";
                         $(this).blur(); // Deselect the contenteditable
                     }
                 });
-
-                $('[contenteditable="true"]').on('blur', function() {
-                    // Check if Enter was pressed before calling updateContent
-                    if (!$(this).data('enterPressed')) {
-                        updateContent($(this)); // Update on blur if not Enter
-                    }
-                    $(this).data('enterPressed', false); // Reset the flag
-                });
-
+                // $('[contenteditable="true"]').on('blur', function() {
+                //     // Only load user info if Enter was not pressed
+                //     if (!$(this).data('enterPressed')) {
+                //         updateContent($(this)); // Update on blur if not Enter
+                //     }
+                //     $(this).data('enterPressed', false); // Reset the flag
+                // });
                 $('select[data-table]').on('change', function() {
-                    updateContent($(this)); // Call updateContent on change
+
+                    updateContent($(this));
+
+                    var tables = $(this).data('table');
+                    if (tableMappings[tables]) {
+                        loadUserInfo(userId, tableMappings[tables]);
+                    }
+
+                    // Call updateContent on change
                 });
             }
 
@@ -369,8 +551,10 @@ include_once "components/index.php";
 
                             if (tables == 'detail') {
                                 loadUserInfo(userId, 'detail');
-                            } else {
+                            } else if (tables == 'case') {
                                 loadUserInfo(userId, 'criminal');
+                            } else {
+                                loadUserInfo(userId, 'service');
                             }
 
                             console.log(response);
@@ -398,6 +582,11 @@ include_once "components/index.php";
                     success: function(data) {
                         $("#user-info").html(data); // Load updated data into the div
                         saveDetailOrders(userid);
+                        makeEditable();
+                        initializeFlatpickr(".flat-pickrAd");
+                        initializeFlatpickr(".flat-pickrEd");
+                        initializeFlatpickr(".flat-pickrSd");
+                        initializeFlatpickr(".flat-pickr");
                     },
                     error: function(xhr, status, error) {
                         console.error("An error occurred: " + error);
@@ -430,7 +619,6 @@ include_once "components/index.php";
                         return; // Stop execution if invalid
                     }
                 }
-
                 // Send the content to your server via AJAX
                 $.ajax({
                     type: "POST",

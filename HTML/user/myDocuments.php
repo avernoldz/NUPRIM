@@ -3,9 +3,8 @@ session_start();
 session_regenerate_id();
 
 if (!$_SESSION['userid']) {
-    header("Location:signin.php?login-first");
+    header("Location:../index.php?login-first");
 }
-
 include_once "components/index.php";
 
 ?>
@@ -78,13 +77,54 @@ include_once "components/index.php";
     include "sideBar.php";
     include "../../Connections/Include.php";
 
-    // $query1 = "SELECT * FROM training WHERE userid = '$userid'";
-    // $results1 = mysqli_query($conn, $query1);
+    function displayDocuments($conn, $userid, $tableName, $title)
+    {
+        $query = "SELECT * FROM $tableName WHERE userid = '$userid'";
+        $results = mysqli_query($conn, $query);
+        $dirName = selectName($conn, $userid);
+
+        echo "<div class='mt-3'>";
+        echo "<h1 class='font-medium mb-3 h6'>$title</h1>";
+        echo "<div class='px-3'><ul role='list' class='divide-y divide-gray-100 rounded-md border border-gray-200'>";
+
+        if (mysqli_num_rows($results) > 0) {
+            while ($row = mysqli_fetch_array($results)) {
+                $dir = "uploads/$dirName/{$row['uploadedDoc']}";
+                $fileName = $row['uploadedDoc'];
+                $sizeFile = file_exists($dir) ? filesize($dir) : 0;
+                $sizeFileFormatted = $sizeFile > 0 ? formatSize($sizeFile) : 'File not found';
+
+                echo "<li class='flex items-center justify-between py-4 pl-4 pr-5 text-sm leading-6'>";
+                echo "<div class='flex w-0 flex-1 items-center'>";
+                echo "<svg class='h-5 w-5 flex-shrink-0 text-gray-400' viewBox='0 0 20 20' fill='currentColor' aria-hidden='true'>
+                        <path fill-rule='evenodd' d='M15.621 4.379a3 3 0 00-4.242 0l-7 7a3 3 0 004.241 4.243h.001l.497-.5a.75.75 0 011.064 1.057l-.498.501-.002.002a4.5 4.5 0 01-6.364-6.364l7-7a4.5 4.5 0 016.368 6.36l-3.455 3.553A2.625 2.625 0 119.52 9.52l3.45-3.451a.75.75 0 111.061 1.06l-3.45 3.451a1.125 1.125 0 001.587 1.595l3.454-3.553a3 3 0 000-4.242z' clip-rule='evenodd' />
+                      </svg>";
+                echo "<div class='ml-4 flex min-w-0 flex-1 gap-2'>";
+                echo "<span class='truncate font-medium'>$fileName</span>";
+                echo "<span class='flex-shrink-0 text-gray-400'> $sizeFileFormatted</span>";
+                echo "</div></div>";
+                echo "<div class='ml-4 flex-shrink-0'>";
+                echo "<a href='$dir' target='_blank' class='font-medium text-indigo-600 hover:text-indigo-500'>Download</a>";
+                echo "</div></li>";
+            }
+        } else {
+            echo "<li class='flex items-center justify-between py-4 pl-4 pr-5 text-sm leading-6'>
+                    <div class='flex w-0 flex-1 items-center'>
+                        <div class='ml-4 flex min-w-0 flex-1 gap-2 justify-content-center'>
+                            <span class='truncate font-medium'>No uploaded documents</span>
+                        </div>
+                    </div>
+                </li>";
+        }
+
+        echo "</ul></div></div>";
+    }
+
     ?>
     <div class="main">
         <div class="row bg">
             <div class="col">
-                <h1>IPCR /&nbsp;&nbsp;<span class="text-[#737373]">My Documents</span></h1>
+                <h1>NUPRIM /&nbsp;&nbsp;<span class="text-[#737373]">My Documents</span></h1>
             </div>
         </div>
 
@@ -94,49 +134,14 @@ include_once "components/index.php";
                     <h1>My Documents</h1>
                 </div>
             </div>
-            <form action="action/training.php" method="POST" id="edit-training">
-                <div class="row bg column-gap-3 items-end">
-                    <?php
-                    $userDir = selectName($conn, $userid); // Get the user's directory
-                    $directory = "uploads/$userDir";
-
-                    if (is_dir($directory)) {
-                        // Scan the directory for files
-                        $files = scandir($directory);
-                        // Filter out the current and parent directory references
-                        $files = array_diff($files, array('.', '..'));
-
-                        if (!empty($files)) {
-                            foreach ($files as $file) {
-                                $filePath = "$directory/$file"; // Full path to the file
-                                $fileType = getFileType($file); // Get file type for each file
-
-                                // Render the appropriate HTML based on the file type
-                                switch ($fileType) {
-                                    case 'image':
-                                        echo "<img class='preview-image' src='$filePath' alt='Uploaded Image'>";
-                                        break;
-                                    case 'pdf':
-                                        echo "<iframe class='preview-pdf' src='$filePath' frameborder='0' onclick='openModal(\"$filePath\", \"$fileType\")'></iframe>";
-                                        break;
-                                    case 'document':
-                                        echo "<div style='background:#e3e3e3;' class='download-link'><a  href='$filePath' target='_blank' style='margin:auto;' >View/Download Document</a></div>";
-                                        break;
-                                    default:
-                                        echo "<p class='unsupported-file'>Unsupported file type: $file</p>";
-                                }
-                            }
-                        } else {
-                            echo "<p class='text-center'>No files available.</p>";
-                        }
-                    } else {
-                        echo "<p class='text-center'>No data available.</p>";
-                    }
-                    ?>
-                    <input type="hidden" name="userid" value="<?php echo $userid ?>">
-
-                </div>
-            </form>
+            <div class="row bg column-gap-3 items-end">
+                <?php
+                displayDocuments($conn, $userid, 'training', 'Training Documents');
+                displayDocuments($conn, $userid, 'leaves', 'Leaves Documents');
+                displayDocuments($conn, $userid, 'detail', 'Detail Orders Documents');
+                displayDocuments($conn, $userid, '`case`', 'Criminal Case Documents');
+                ?>
+            </div>
         </div>
 
         <!-- Modal Structure -->
@@ -158,10 +163,6 @@ include_once "components/index.php";
                 </div>
             </div>
         </div>
-
-        <script>
-
-        </script>
 
 </body>
 

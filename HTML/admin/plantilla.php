@@ -34,21 +34,22 @@ if (!isset($_SESSION['adminid'])) {
     $adminid = $_SESSION['adminid'];
     $active = "Plantilla";
     $log = 0;
-    include "sideBar.php";
     include "../../Connections/Include.php";
     include "components/components.php";
+    include "sideBar.php";
 
-    if (isset($_GET['alert']) && $_GET['alert'] == '1') {
-        echo '<script>var alertMessage = "Plantilla has been added successfully!";</script>';
-    } elseif (isset($_GET['alert']) && $_GET['alert'] == '2') {
-        echo '<script>var alertMessage = "Plantilla has been edited successfully!";</script>';
+    if (isset($_GET['alert']) && isset($_GET['message'])) {
+        $alertType = $_GET['alert'];
+        $alertMessage = urldecode($_GET['message']);
+        showToastr($alertMessage, $alertType);
     }
+
 
     ?>
     <div class="main">
         <div class="row">
             <div class="col head">
-                <h1>IPCR /&nbsp;&nbsp;<span class="text-[#737373]">Plantilla</span></h1>
+                <h1>NUPRIM /&nbsp;&nbsp;<span class="text-[#737373]">Plantilla</span></h1>
             </div>
         </div>
 
@@ -68,7 +69,8 @@ if (!isset($_SESSION['adminid'])) {
                 </thead>
                 <tbody>
                     <?php
-                    $query1 = "SELECT * FROM plantilla";
+
+                    $query1 = "SELECT * FROM plantilla ORDER BY plantillaid DESC";
                     $results1 = mysqli_query($conn, $query1);
 
                     if (mysqli_num_rows($results1) > 0) {
@@ -78,7 +80,7 @@ if (!isset($_SESSION['adminid'])) {
                             <tr>
                                 <td><?php echo "$rows[itemNumber]" ?></td>
                                 <td><?php echo "$rows[position]" ?></td>
-                                <td><?php echo "$rows[sgrade]" ?></td>
+                                <td><?php echo "SG - $rows[sgrade]" ?></td>
                                 <td><?php echo "PHP " . number_format($rows['msalary'], 2) ?></td>
                                 <td><?php echo "$rows[designation]" ?></td>
                                 <td><?php echo "$rows[station]" ?></td>
@@ -95,10 +97,6 @@ if (!isset($_SESSION['adminid'])) {
                                                     </div>
                                                     <div class="modal-body">
                                                         <div class="row column-gap-3">
-                                                            <!-- <div class="col">
-                                                            <label for="itemNumber" class="form-label">Item Number <span class="text-[red]">*</span></label>
-                                                            <input type="text" id="itemNumber" class="form-control" name="itemNumber" required>
-                                                        </div> -->
                                                             <div class="col-7">
                                                                 <label for="position" class="form-label">Position</label>
                                                                 <input type="text" id="position" class="form-control" name="position" value="<?php echo $rows['position'] ?>">
@@ -118,9 +116,7 @@ if (!isset($_SESSION['adminid'])) {
 
                                                         <div class="row column-gap-3 mt-2">
                                                             <div class="col">
-                                                                <label for="designation" class="form-label">
-                                                                    Designation <span class="text-[red]">*</span>
-                                                                </label>
+                                                                <label for="designation" class="form-label">Designation <span class="text-[red]">*</span></label>
                                                                 <input type="text" id="designation" class="form-control" name="designation" value="<?php echo $rows['designation'] ?>" required>
                                                             </div>
                                                             <div class="col">
@@ -128,7 +124,7 @@ if (!isset($_SESSION['adminid'])) {
                                                                 <input type="text" id="station" class="form-control" name="station" value="<?php echo $rows['station'] ?>" required>
                                                             </div>
                                                         </div>
-                                                        <input type="hidden" name="plantillaid" value="<?php echo $row['plantillaid'] ?>">
+                                                        <input type="hidden" name="plantillaid" value="<?php echo $rows['plantillaid'] ?>">
                                                     </div>
                                                     <div class="modal-footer">
                                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -173,7 +169,7 @@ if (!isset($_SESSION['adminid'])) {
                         <div class="row column-gap-3 mt-2">
                             <div class="col">
                                 <label for="sgrade" class="form-label">Salary Grade <span class="text-[red]">*</span></label>
-                                <input type="text" id="sgrade" class="form-control" name="sgrade" required>
+                                <input type="number" id="sgrade" class="form-control" name="sgrade" required>
                             </div>
                             <div class="col">
                                 <label for="msalary" class="form-label">Monthly Salary <span class="text-[red]">*</span></label>
@@ -183,9 +179,7 @@ if (!isset($_SESSION['adminid'])) {
 
                         <div class="row column-gap-3 mt-2">
                             <div class="col">
-                                <label for="designation" class="form-label">
-                                    Designation <span class="text-[red]">*</span>
-                                </label>
+                                <label for="designation" class="form-label">Designation <span class="text-[red]">*</span></label>
                                 <input type="text" id="designation" class="form-control" name="designation" required>
                             </div>
                             <div class="col">
@@ -206,7 +200,6 @@ if (!isset($_SESSION['adminid'])) {
 
 
     <?php
-
     if (isset($_POST['save'])) {
         $itemNumber = htmlspecialchars($_POST['itemNumber'], ENT_QUOTES, 'UTF-8');
         $position = htmlspecialchars($_POST['position'], ENT_QUOTES, 'UTF-8');
@@ -215,15 +208,24 @@ if (!isset($_SESSION['adminid'])) {
         $designation = htmlspecialchars($_POST['designation'], ENT_QUOTES, 'UTF-8');
         $station = htmlspecialchars($_POST['station'], ENT_QUOTES, 'UTF-8');
 
+        // Check if itemNumber already exists
+        $checkQuery = "SELECT * FROM plantilla WHERE itemNumber = '$itemNumber'";
+        $checkResult = mysqli_query($conn, $checkQuery);
 
-        $insert = "INSERT INTO plantilla(itemNumber, position, sgrade, msalary, designation, station)
-                        VALUES('$itemNumber','$position','$sgrade','$msalary','$designation', '$station')";
-
-        if (mysqli_query($conn, $insert)) {
-            echo "<script>window.location.href='plantilla.php?adminid=$adminid&alert=1';</script>";
-            exit();
+        if (mysqli_num_rows($checkResult) > 0) {
+            // Item number already exists
+            echo "<script>window.location.href='plantilla.php?alert=error&message=Item number already exists';</script>";
         } else {
-            echo mysqli_error($conn);
+            // Insert if no existing itemNumber
+            $insert = "INSERT INTO plantilla(itemNumber, position, sgrade, msalary, designation, station)
+                            VALUES('$itemNumber','$position','$sgrade','$msalary','$designation', '$station')";
+
+            if (mysqli_query($conn, $insert)) {
+                echo "<script>window.location.href='plantilla.php?alert=success&message=Plantilla addedd succesfully';</script>";
+                exit();
+            } else {
+                echo mysqli_error($conn);
+            }
         }
     }
 
@@ -235,8 +237,7 @@ if (!isset($_SESSION['adminid'])) {
         $designation = htmlspecialchars($_POST['designation'], ENT_QUOTES, 'UTF-8');
         $station = htmlspecialchars($_POST['station'], ENT_QUOTES, 'UTF-8');
 
-
-        $insert = "UPDATE plantilla 
+        $update = "UPDATE plantilla 
                     SET position = '$position', 
                         sgrade = '$sgrade', 
                         msalary = '$msalary', 
@@ -244,14 +245,13 @@ if (!isset($_SESSION['adminid'])) {
                         station = '$station' 
                     WHERE plantillaid = '$id'";
 
-        if (mysqli_query($conn, $insert)) {
-            echo "<script>window.location.href='plantilla.php?adminid=$adminid&alert=2';</script>";
+        if (mysqli_query($conn, $update)) {
+            echo "<script>window.location.href='plantilla.php?alert=success&message=Plantilla edited succesfully';</script>";
             exit();
         } else {
             echo mysqli_error($conn);
         }
     }
-
     ?>
 
     <script src="../JS/app.js"></script>

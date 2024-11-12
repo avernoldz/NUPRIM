@@ -39,7 +39,7 @@ if (isset($_POST['submit'])) {
 
         if (mysqli_query($conn, $insert)) {
             logAction($conn, $_SESSION['userid'], 'Add family details', $_SESSION['type']);
-            echo "<script>window.location.href='../family.php?userid=$userid&alert=1';</script>";
+            echo "<script>window.location.href='../family.php?userid=$userid&alert=success&message=Saved Successfully';</script>";
         } else {
             echo mysqli_error($conn);
         }
@@ -52,7 +52,7 @@ if (isset($_POST['submit'])) {
 
         if (mysqli_query($conn, $query)) {
             logAction($conn, $_SESSION['userid'], 'Update family details', $_SESSION['type']);
-            echo "<script>window.location.href='../family.php?userid=$userid&alert=1';</script>";
+            echo "<script>window.location.href='../family.php?userid=$userid&alert=success&message=Saved Successfully';</script>";
         } else {
             echo mysqli_error($conn);
         }
@@ -72,7 +72,7 @@ if (isset($_POST['add-child'])) {
 
     if (mysqli_query($conn, $insert)) {
         logAction($conn, $_SESSION['userid'], 'Add child details', $_SESSION['type']);
-        echo "<script>window.location.href='../family.php?userid=$userid&alert=1';</script>";
+        echo "<script>window.location.href='../family.php?userid=$userid&alert=success&message=Saved Successfully';</script>";
     } else {
         echo mysqli_error($conn);
     }
@@ -87,7 +87,7 @@ if (isset($_GET['delete'])) {
 
     if (mysqli_query($conn, $delete)) {
         logAction($conn, $_SESSION['userid'], 'Delete child details', $_SESSION['type']);
-        header("Location:../family.php?userid=$userid&alert=1");
+        header("Location:../family.php?userid=$userid&alert=success&message=Deleted Successfully");
     } else {
         echo mysqli_errno($conn);
     }

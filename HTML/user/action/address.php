@@ -25,7 +25,7 @@ if (isset($_POST['submit'])) {
 
         if (mysqli_query($conn, $insert)) {
             logAction($conn, $_SESSION['userid'], 'Add new address', $_SESSION['type']);
-            echo "<script>window.location.href='../address.php?userid=$userid&alert=1';</script>";
+            echo "<script>window.location.href='../address.php?userid=$userid&alert=success&message=Saved Successfully';</script>";
             exit();
         } else {
             echo mysqli_error($conn);
@@ -36,7 +36,7 @@ if (isset($_POST['submit'])) {
 
         if (mysqli_query($conn, $query)) {
             logAction($conn, $_SESSION['userid'], 'Update address', $_SESSION['type']);
-            echo "<script>window.location.href='../address.php?userid=$userid&alert=1';</script>";
+            echo "<script>window.location.href='../address.php?userid=$userid&alert=success&message=Saved Successfully';</script>";
             exit();
         } else {
             echo mysqli_error($conn);

@@ -1,0 +1,9 @@
+{
+  "require": {
+    "dompdf/dompdf": "^3.0",
+    "setasign/fpdf": "^1.8",
+    "setasign/fpdi": "^2.6",
+    "infobip/infobip-api-php-client": "^5.1",
+    "twilio/sdk": "^8.3"
+  }
+}

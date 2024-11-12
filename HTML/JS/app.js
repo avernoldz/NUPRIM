@@ -143,3 +143,67 @@ if (typeof alertMessage !== "undefined") {
 if (window.history.replaceState) {
   window.history.replaceState(null, null, window.location.href.split("?")[0]);
 }
+
+$("#npassword, #cpassword").keyup(function () {
+  const pass = $("#npassword").val();
+  const cpass = $("#cpassword").val();
+  const message = $(".cpass");
+
+  if (pass !== cpass) {
+    message.show();
+    message
+      .removeClass("text-success")
+      .addClass("text-danger")
+      .text("Passwords do not match.");
+    $("#save").attr("disabled", true);
+  } else {
+    message.show();
+    message
+      .removeClass("text-danger")
+      .addClass("text-success")
+      .text("Passwords match");
+    $("#save").attr("disabled", false);
+  }
+
+  console.log(pass, cpass, settings);
+});
+
+$("#opassword").keyup(function () {
+  const old = $("#opassword").val();
+  const input = $("#opassword2").val();
+
+  $.ajax({
+    url: "action/settings.php", // URL to your server-side script
+    type: "POST",
+    data: {
+      old: old,
+      input: input,
+    },
+    success: function (response) {
+      console.log(old);
+      console.log(response);
+      if (response == "correct") {
+        $("#save").attr("disabled", false);
+        $(".opass")
+          .text("Old password is correct.")
+          .removeClass("text-danger")
+          .addClass("text-success")
+          .show();
+      } else {
+        $("#save").attr("disabled", true);
+        $(".opass")
+          .text("Old password is incorrect.")
+          .removeClass("text-success")
+          .addClass("text-danger")
+          .show();
+      }
+    },
+    error: function () {
+      console.log("ERR");
+      $(".opass")
+        .text("An error occurred. Please try again.")
+        .addClass("text-danger")
+        .show();
+    },
+  });
+});

@@ -23,7 +23,7 @@ if (isset($_POST['add-education'])) {
 
     if (mysqli_query($conn, $insert)) {
         logAction($conn, $_SESSION['userid'], 'Add new education', $_SESSION['type']);
-        echo "<script>window.location.href='../education.php?userid=$userid&alert=1';</script>";
+        echo "<script>window.location.href='../education.php?userid=$userid&alert=success&message=Saved Successfully';</script>";
     } else {
         echo mysqli_error($conn);
     }
@@ -37,7 +37,7 @@ if (isset($_GET['delete'])) {
 
     if (mysqli_query($conn, $delete)) {
         logAction($conn, $_SESSION['userid'], 'Delete education', $_SESSION['type']);
-        header("Location:../education.php?userid=$userid&alert=1");
+        header("Location:../education.php?userid=$userid&&alert=success&message=Saved Successfully1");
     } else {
         echo mysqli_errno($conn);
     }

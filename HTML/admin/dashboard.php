@@ -30,21 +30,26 @@ if (!isset($_SESSION['adminid'])) {
     $adminid = $_SESSION['adminid'];
     $active = "dashboard";
     $log = 0;
-    include "sideBar.php";
     include "../../Connections/Include.php";
+    include "sideBar.php";
 
     $query1 = "SELECT 
                 COUNT(CASE WHEN type = 'User' THEN userid END) AS total_users,
                 COUNT(CASE WHEN type = 'Supervisor' THEN userid END) AS total_supervisors
-                 FROM account;";
+                 FROM account WHERE isArchive = TRUE;";
     $results1 = mysqli_query($conn, $query1);
     $row1 = mysqli_fetch_array($results1);
+
+    $query2 = "SELECT COUNT(plantillaid) AS total_plantilla FROM plantilla;";
+    $results2 = mysqli_query($conn, $query2);
+    $row2 = mysqli_fetch_array($results2);
+
 
     ?>
     <div class="main">
         <div class="row">
             <div class="col head">
-                <h1>IPCR /&nbsp;&nbsp;<span class="text-[#737373]">Dashboard</span></h1>
+                <h1>NUPRIM /&nbsp;&nbsp;<span class="text-[#737373]">Dashboard</span></h1>
             </div>
         </div>
 
@@ -77,7 +82,7 @@ if (!isset($_SESSION['adminid'])) {
                         <i class="fa-solid fa-user-shield fa-fw text-[72px]"></i>
                     </div>
                     <div class="col flex flex-col items-end">
-                        <h3>10</h3>
+                        <h3><?php echo $row2['total_plantilla'] ?></h3>
                         <h4 class="opacity-75">Total Plantilla</h4>
                     </div>
                 </div>

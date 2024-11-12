@@ -24,7 +24,8 @@
   color: #ffffff;
 }
 
-.side-bar .drop-profile li {
+.side-bar .drop-profile li,
+.side-bar .drop-ipcr li {
   padding-left: 36px;
 }
 
@@ -36,7 +37,8 @@
   color: #ffffff;
 }
 
-.side-bar .drop-profile {
+.side-bar .drop-profile,
+.side-bar .drop-ipcr {
   background: var(--blue-700);
 }
 
@@ -93,7 +95,8 @@
   border: 0px;
 }
 
-.main .row.bg {
+.main .row.bg,
+.box {
   background-color: white;
   padding: 16px;
   border-radius: 4px;

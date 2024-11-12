@@ -3,7 +3,7 @@ session_start();
 session_regenerate_id();
 
 if (!$_SESSION['userid']) {
-    header("Location:signin.php?login-first");
+    header("Location:../index.php?login-first");
 }
 
 include_once "components/index.php";
@@ -41,19 +41,9 @@ include_once "components/index.php";
     <?php
     $userid = $_SESSION['userid'];
     $active = "IPCR";
-    $on = "off";
+    $on = "on";
     include "sideBar.php";
     include "../../Connections/Include.php";
-
-    function showToastr($message, $type)
-    {
-        echo '<script>
-            var alertMessage = "' . addslashes($message) . '";
-            if (alertMessage) {
-                    toastr.' . $type . '(alertMessage);
-            }
-        </script>';
-    }
 
     if (isset($_GET['alert']) && isset($_GET['message'])) {
         $alertType = $_GET['alert'];
@@ -66,7 +56,7 @@ include_once "components/index.php";
     <div class="main">
         <div class="row bg">
             <div class="col">
-                <h1>IPCR /&nbsp;&nbsp;<span class="text-[#737373]">IPCR</span></h1>
+                <h1>NUPRIM /&nbsp;&nbsp;<span class="text-[#737373]">IPCR</span></h1>
             </div>
         </div>
 
@@ -99,13 +89,16 @@ include_once "components/index.php";
                             }
                     ?>
                             <div class="ipcr col-12 p-2 flex flex-wrap justify-between items-center bg-[#e4f2ff]">
-                                <h2 class="font-bold">IPCR -
+                                <h2 class="font-bold ml-5">IPCR -
                                     <span class="font-normal"><?php echo emptyData("semester", $row2) . ' (' . emptyData("year", $row2) . ')' ?></span>
+                                </h2>
+                                <h2 class="font-bold">
+                                    <span class="font-normal">Rating - </span> <?php echo emptyData("finalRating", $row2) ?>
                                 </h2>
                                 <div class="col-3 text-center">
                                     <span class="mr-5"><?php echo $stat; ?></span>
                                     <a href="viewipcr.php?ipcrid=<?php echo $row2["ipcrid"] ?>&userid=<?php echo $userid ?>&delete" class=" hover:bg-gray-300 hover:rounded-full p-2"><i class="fa-regular fa-eye fa-fw text-gray-600"></i></a>
-                                    <a href="action/ipcr.php?ipcrid=<?php echo $row2["ipcrid"] ?>&userid=<?php echo $userid ?>&delete" class="ml-3 hover:bg-gray-300 hover:rounded-full p-2"><i class="fa-regular fa-trash-can fa-fw text-gray-600"></i></a>
+                                    <!-- <a href="action/ipcr.php?ipcrid=<?php echo $row2["ipcrid"] ?>&userid=<?php echo $userid ?>&delete" class="ml-3 hover:bg-gray-300 hover:rounded-full p-2"><i class="fa-regular fa-trash-can fa-fw text-gray-600"></i></a> -->
                                 </div>
                             </div>
                     <?php

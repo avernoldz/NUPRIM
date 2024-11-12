@@ -3,7 +3,7 @@ session_start();
 session_regenerate_id();
 
 if (!$_SESSION['userid']) {
-    header("Location:signin.php?login-first");
+    header("Location:../index.php?login-first");
 }
 
 include_once "components/index.php";
@@ -39,11 +39,17 @@ include_once "components/index.php";
     $query1 = "SELECT * FROM eligibility WHERE userid = '$userid'";
     $results1 = mysqli_query($conn, $query1);
     $row1 = mysqli_fetch_array($results1);
+
+    if (isset($_GET['alert']) && isset($_GET['message'])) {
+        $alertType = $_GET['alert'];
+        $alertMessage = urldecode($_GET['message']);
+        showToastr($alertMessage, $alertType);
+    }
     ?>
     <div class="main">
         <div class="row bg">
             <div class="col">
-                <h1>IPCR /&nbsp;&nbsp;<span class="text-[#737373]">My Profile</span></h1>
+                <h1>NUPRIM /&nbsp;&nbsp;<span class="text-[#737373]">My Profile</span></h1>
             </div>
         </div>
 
@@ -81,14 +87,26 @@ include_once "components/index.php";
                                     <input type="text" id="rating" class="form-control" name="rating" value="<?php echo emptyData("rating", $row2) ?>" disabled>
                                 </div>
 
+
+                                <div class="col mb-2">
+                                    <label for="placeOfExam" class="form-label">Examination Place</label>
+                                    <input type="text" id="placeOfExam" class="form-control" name="placeOfExam" value="<?php echo emptyData("placeOfExam", $row2) ?>" disabled>
+                                </div>
+                                <div class="w-100"></div>
+
                                 <div class="col mb-2">
                                     <label for="dateOfExam" class="form-label">Examination Date</label>
                                     <input type="text" id="dateOfExam" class="form-control" name="dateOfExam" value="<?php echo emptyData("dateOfExam", $row2) ?>" disabled>
                                 </div>
-                                <div class="w-100"></div>
+
                                 <div class="col mb-2">
-                                    <label for="placeOfExam" class="form-label">Examination Place</label>
-                                    <input type="text" id="placeOfExam" class="form-control" name="placeOfExam" value="<?php echo emptyData("placeOfExam", $row2) ?>" disabled>
+                                    <label for="sdate" class="form-label">Date Start</label>
+                                    <input type="text" id="sdate" class="form-control" name="sdate" value="<?php echo emptyData("dateStart", $row2) ?>" disabled>
+                                </div>
+
+                                <div class="col mb-2">
+                                    <label for="edate" class="form-label">Date End</label>
+                                    <input type="text" id="edate" class="form-control" name="edate" value="<?php echo emptyData("dateEnd", $row2) ?>" disabled>
                                 </div>
 
                                 <div class="w-100"></div>
@@ -139,6 +157,18 @@ include_once "components/index.php";
                                     <label for="date" class="form-label">Examination Date</label>
                                     <input type="date" id="date" class="form-control" name="date">
                                 </div>
+
+                                <div class="w-100"></div>
+                                <div class="col mb-4">
+                                    <label for="sdate" class="form-label">Date Start </label>
+                                    <input type="date" id="sdate" class="form-control" name="sdate">
+                                </div>
+
+                                <div class="col mb-4">
+                                    <label for="edate" class="form-label">Date End</label>
+                                    <input type="date" id="edate" class="form-control" name="edate">
+                                </div>
+
                                 <div class="w-100"></div>
 
                                 <div class="col mb-2">
@@ -170,7 +200,7 @@ include_once "components/index.php";
                 </div>
             </div>
         </form>
-
+        <script src="../JS/app.js"></script>
 </body>
 
 </html>

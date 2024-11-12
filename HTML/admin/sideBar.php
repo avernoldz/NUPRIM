@@ -1,3 +1,9 @@
+<?php
+$requestC = "SELECT COUNT(userid) as total FROM account WHERE isArchive = FALSE AND type = 'User'";
+$rc = mysqli_query($conn, $requestC);
+$rw2 = mysqli_fetch_array($rc);
+
+?>
 <div class="side-bar">
     <div class="wrapper">
         <div class="row">
@@ -27,6 +33,18 @@
                                         } ?>">
                             <i class="fa-solid fa-user-group fa-fw"></i>
                             <span>Personnel</span>
+                        </li>
+                    </a>
+
+                    <a
+                        href="requests.php?adminid=<?php echo $adminid ?>">
+                        <li class="navi <?php if ($active == "Requests") {
+                                            echo "active";
+                                        } ?>">
+                            <div class="flex">
+                                <span class="!ml-0"><i class="fa-solid fa-clock fa-fw mr-3"></i>Request</span>
+                                <span class="!ml-0 bg-red-600 rounded-full w-6 h-6 text-center font-medium"><?php echo $rw2['total'] ?></span>
+                            </div>
                         </li>
                     </a>
 

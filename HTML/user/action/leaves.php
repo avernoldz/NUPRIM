@@ -52,7 +52,7 @@ if (isset($_POST['request'])) {
 
         if (mysqli_query($conn, $insert)) {
             logAction($conn, $_SESSION['userid'], 'File new leave', $_SESSION['type']);
-            echo "<script>window.location.href='../leaves.php?userid=$userid&alert=1';</script>";
+            echo "<script>window.location.href='../leaves.php?userid=$userid&alert=success&message=Saved Successfully';</script>";
         } else {
             echo mysqli_error($conn);
         }
@@ -69,7 +69,7 @@ if (isset($_GET['delete'])) {
 
     if (mysqli_query($conn, $delete)) {
         logAction($conn, $_SESSION['userid'], 'Delete leave', $_SESSION['type']);
-        header("Location:../leaves.php?userid=$userid&alert=1");
+        header("Location:../leaves.php?userid=$userid&alert=success&message=Deleted Successfully");
     } else {
         echo mysqli_errno($conn);
     }

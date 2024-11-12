@@ -7,6 +7,7 @@ if (isset($_POST['table'])) {
     $field = $_POST['field'];
     $content = $_POST['content'];
     $table = $_POST['table'];
+    $s = isset($_POST['supervisor']);
 
     // Function to check and convert date
     function convertToDate($dateString)
@@ -62,82 +63,158 @@ if (isset($_POST['table'])) {
     $conn->close();
 }
 
-if (isset($_POST['detail_orders'])) {
+if (isset($_POST['supervisor'])) {
+    $id = $_POST['id'];
+    $field = $_POST['field'];
+    $content = $_POST['content'];
+    $table = $_POST['tables'];
+    $s = isset($_POST['supervisor']);
 
+    if ($s) {
+        // Prepare the SQL statement
+        $stmt = $conn->prepare("UPDATE `$table` SET $field = ? WHERE userid = ?");
+
+        $stmt->bind_param("si", $content, $id);
+        if ($stmt->execute()) {
+            echo "Content updated successfully.";
+        } else {
+            echo "Error updating content: " . $stmt->error;
+        }
+
+        $stmt->close();
+    }
+
+    $conn->close();
+}
+
+if (isset($_POST['detail_orders'])) {
+    $table = mysqli_real_escape_string($conn, $_POST['tables']);
     $userid = mysqli_real_escape_string($conn, $_POST['userid']);
     $details_orders = mysqli_real_escape_string($conn, $_POST['detail_orders']);
-    $orderType = mysqli_real_escape_string($conn, $_POST['orderType']);
-    $dateStart = mysqli_real_escape_string($conn, $_POST['dateStart']);
-    $dateEnd = mysqli_real_escape_string($conn, $_POST['dateEnd']);
-    $authNo = mysqli_real_escape_string($conn, $_POST['authNo']);
-    $office = isset($_POST['office']) ? mysqli_real_escape_string($conn, $_POST['office']) : '';
-    $authDate = mysqli_real_escape_string($conn, $_POST['authDate']);
-    $pending = 'Pending';
-    $table = mysqli_real_escape_string($conn, $_POST['tables']);
 
-    $firstName = selectName($conn, $userid);
+    if ($table != 'service') {
+        $orderType = mysqli_real_escape_string($conn, $_POST['orderType']);
+        $dateStart = mysqli_real_escape_string($conn, $_POST['dateStart']);
+        $dateEnd = mysqli_real_escape_string($conn, $_POST['dateEnd']);
+        $authNo = mysqli_real_escape_string($conn, $_POST['authNo']);
+        $office = isset($_POST['office']) ? mysqli_real_escape_string($conn, $_POST['office']) : '';
+        $authDate = mysqli_real_escape_string($conn, $_POST['authDate']);
+        $pending = 'Pending';
 
-    if (isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK) {
-        $uploadDir = '../../user/uploads/';
-        $file = $_FILES['file']; // Assign the file to a variable
 
-        $allowedTypes = ['image/jpeg', 'image/png', 'application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel'];
+        $firstName = selectName($conn, $userid);
 
-        // Check if file type is allowed
-        if (!in_array($file['type'], $allowedTypes)) {
-            die("Error: Only JPG, PNG, DOCX, PDF, and XLSX files are allowed.");
-        }
+        if (isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK) {
+            $uploadDir = '../../user/uploads/';
+            $file = $_FILES['file']; // Assign the file to a variable
 
-        // Check if directory exists, if not create it
-        if (!file_exists($uploadDir)) {
-            mkdir($uploadDir, 0777, true);
-        }
+            $allowedTypes = ['image/jpeg', 'image/png', 'application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel'];
 
-        // Create a directory for the user's first name if it doesn't exist
-        $userDir = $uploadDir . $firstName . "/";
-        if (!file_exists($userDir)) {
-            mkdir($userDir, 0777, true);
-        }
-
-        $uploadedDoc = basename($file['name']);
-        $newDate = date('jgsu');
-
-        $uploadDoc = pathinfo($uploadedDoc, PATHINFO_FILENAME) . "_" . $newDate . "." . pathinfo($uploadedDoc, PATHINFO_EXTENSION);
-
-        $targetFile = $userDir . $uploadDoc;
-
-        // Move the uploaded file to the desired directory
-        if (move_uploaded_file($file['tmp_name'], $targetFile)) {
-
-            // Prepare the SQL statement based on the selected table
-            if ($table == 'detail') {
-                $stmt = $conn->prepare("INSERT INTO detail (uploadedDoc, status, userid, orderType, dateStart, dateEnd, authorityNo, office, authorityDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-
-                // Bind parameters
-                $stmt->bind_param("sssssssss", $uploadDoc, $pending, $userid, $orderType, $dateStart, $dateEnd, $authNo, $office, $authDate);
-            } else {
-                $stmt = $conn->prepare("INSERT INTO `case` (uploadedDoc, status, userid, sunction, dateStart, dateEnd, authorityNo, authorityDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-
-                // Bind parameters
-                $stmt->bind_param("ssssssss", $uploadDoc, $pending, $userid, $orderType, $dateStart, $dateEnd, $authNo, $authDate);
+            // Check if file type is allowed
+            if (!in_array($file['type'], $allowedTypes)) {
+                die("Error: Only JPG, PNG, DOCX, PDF, and XLSX files are allowed.");
             }
 
-            // Execute the statement
-            if ($stmt->execute()) {
-                echo "Record inserted successfully.";
-            } else {
-                echo "Error inserting record: " . $stmt->error;
+            // Check if directory exists, if not create it
+            if (!file_exists($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
             }
 
-            $stmt->close();
-            $conn->close();
-            exit;
+            // Create a directory for the user's first name if it doesn't exist
+            $userDir = $uploadDir . $firstName . "/";
+            if (!file_exists($userDir)) {
+                mkdir($userDir, 0777, true);
+            }
+
+            $uploadedDoc = basename($file['name']);
+            $newDate = date('jgsu');
+
+            $uploadDoc = pathinfo($uploadedDoc, PATHINFO_FILENAME) . "_" . $newDate . "." . pathinfo($uploadedDoc, PATHINFO_EXTENSION);
+
+            $targetFile = $userDir . $uploadDoc;
+
+            // Move the uploaded file to the desired directory
+            if (move_uploaded_file($file['tmp_name'], $targetFile)) {
+
+                // Prepare the SQL statement based on the selected table
+                if ($table == 'detail') {
+                    $stmt = $conn->prepare("INSERT INTO detail (uploadedDoc, status, userid, orderType, dateStart, dateEnd, authorityNo, office, authorityDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
+                    // Bind parameters
+                    $stmt->bind_param("sssssssss", $uploadDoc, $pending, $userid, $orderType, $dateStart, $dateEnd, $authNo, $office, $authDate);
+                } else {
+                    $stmt = $conn->prepare("INSERT INTO `case` (uploadedDoc, status, userid, sunction, dateStart, dateEnd, authorityNo, authorityDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+
+                    // Bind parameters
+                    $stmt->bind_param("ssssssss", $uploadDoc, $pending, $userid, $orderType, $dateStart, $dateEnd, $authNo, $authDate);
+                }
+
+                // Execute the statement
+                if ($stmt->execute()) {
+                    echo "Record inserted successfully.";
+                } else {
+                    echo "Error inserting record: " . $stmt->error;
+                }
+
+                $stmt->close();
+                $conn->close();
+                exit;
+            } else {
+                echo "Error moving uploaded file.";
+                exit;
+            }
         } else {
-            echo "Error moving uploaded file.";
+            echo "No file was uploaded or there was an upload error.";
             exit;
         }
     } else {
-        echo "No file was uploaded or there was an upload error.";
-        exit;
+        $newPosition = mysqli_real_escape_string($conn, $_POST['newPosition']);
+        $datePromotion = mysqli_real_escape_string($conn, $_POST['datePromotion']);
+        $serviceid = mysqli_real_escape_string($conn, $_POST['serviceid']);
+
+        $query = "SELECT position 
+          FROM account 
+          INNER JOIN plantilla ON account.itemNumber = plantilla.itemNumber 
+          WHERE userid = ?";
+
+        // Prepare the first statement
+        $stmtSelect = $conn->prepare($query);
+        $stmtSelect->bind_param("s", $userid);
+        $stmtSelect->execute();
+        $stmtSelect->store_result(); // Store the result to avoid "commands out of sync"
+        $stmtSelect->bind_result($position);
+        $stmtSelect->fetch();
+
+        $lastPosition = $position;
+
+        // Prepare the second statement to insert into servicehistory
+        $insert = "INSERT INTO servicehistory (serviceid, lastPosition, newPosition, datePromotion) VALUES (?, ?, ?, ?)";
+        $stmtInsert = $conn->prepare($insert);
+        $stmtInsert->bind_param("ssss", $serviceid, $lastPosition, $newPosition, $datePromotion);
+
+        if ($stmtInsert->execute()) {
+            // Prepare the update statement
+            $update = "UPDATE plantilla 
+                            INNER JOIN account ON plantilla.itemNumber = account.itemNumber 
+                            SET plantilla.position = ?
+                            WHERE account.userid = ?;
+                            ";
+            $stmtUpdate = $conn->prepare($update);
+            $stmtUpdate->bind_param("ss", $newPosition, $userid);
+
+            if ($stmtUpdate->execute()) {
+                echo "Record inserted successfully and position updated.";
+            } else {
+                echo "Error updating position: " . $stmtUpdate->error;
+            }
+
+            $stmtUpdate->close(); // Close the update statement
+        } else {
+            echo "Error inserting record: " . $stmtInsert->error;
+        }
+
+        // Close the select and insert statements
+        $stmtSelect->close();
+        $stmtInsert->close();
     }
 }

@@ -7,26 +7,9 @@
     "target-e": "100% of the planned target prepared and submitted on the target date",
     "acc-q": "weekly report prepared accepted/approved on 2nd submission with minimal errors",
     "acc-t": "one day before TD",
-    "acc-e": "1 per week"
-  },
-  {
-    "core": "2. Prepares weekly NUP DPAR for submision to Regional Headquarters",
-    "success": "No of accepted/approved prepared weekly report on DPAR on second submission with minimal changes one day before TD",
-    "target-q": "100% (1 of 1) Accepted/Approved weekly report on 2nd submission with minimal changes",
-    "target-t": "one day before the target date",
-    "target-e": "100% of the planned target prepared and submitted on the target date",
-    "acc-q": "weekly report prepared accepted/approved on 2nd submission with minimal errors",
-    "acc-t": "one day before TD",
-    "acc-e": "1 per week"
-  },
-  {
-    "core": "3. Prepares weekly NUP DPAR for submision to Regional Headquarters",
-    "success": "No of accepted/approved prepared weekly report on DPAR on second submission with minimal changes one day before TD",
-    "target-q": "100% (1 of 1) Accepted/Approved weekly report on 2nd submission with minimal changes",
-    "target-t": "one day before the target date",
-    "target-e": "100% of the planned target prepared and submitted on the target date",
-    "acc-q": "weekly report prepared accepted/approved on 2nd submission with minimal errors",
-    "acc-t": "one day before TD",
-    "acc-e": "1 per week"
+    "acc-e": "1 per week",
+    "ratings-q": "4.5",
+    "ratings-t": "4.5",
+    "ratings-e": "4.3"
   }
 ]

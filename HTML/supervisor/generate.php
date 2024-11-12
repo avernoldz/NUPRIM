@@ -3,7 +3,7 @@ session_start();
 session_regenerate_id();
 
 if (!$_SESSION['supervisorid']) {
-    header("Location:signin.php?login-first");
+    header("Location:../index.php?login-first");
 }
 
 include_once "../user/components/index.php";
@@ -19,10 +19,6 @@ include_once "../user/components/index.php";
     <link rel="stylesheet" href="CSS/index.css">
     <link rel="stylesheet" href="../../CSS/root.css">
     <link rel="stylesheet" href="CSS/side-bar.css">
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <title>IPCR Generator</title>
     <style>
         body {
@@ -100,6 +96,10 @@ include_once "../user/components/index.php";
                 display: none;
                 /* Hide the drag element during print */
             }
+
+            .no-print {
+                display: none;
+            }
         }
     </style>
 </head>
@@ -141,10 +141,19 @@ include_once "../user/components/index.php";
     $coreData = json_decode($rows['core'], true);
     $supportData = json_decode($rows['support'], true);
 
+    $dirName = selectName($conn, $userid);
+    $assessed = selectAssessed($conn, $userid);
+
+
     ?>
     <div class="overlay loading">
         <div class="spinner-grow text-light" role="status">
             <span class="visually-hidden"></span>
+        </div>
+    </div>
+    <div class="row w-100 justify-start-end">
+        <div class="col-12">
+            <a href="ipcr.php?userid=<?php echo $userid ?>"> <i class="fa-solid fa-add fa-fw mr-2 rotate-45 text-[#7b8087] text-[24px] float-right"></i><a></a>
         </div>
     </div>
     <div class="row w-100">
@@ -191,6 +200,7 @@ include_once "../user/components/index.php";
                     <th colspan="3" class="border-1 border-gray-400 text-center align-middle p-2 w-2/6">TARGETS</th>
                     <th colspan="3" class="border-1 border-gray-400 text-center align-middle p-2 w-2/6">ACCOMPLISHMENTS</th>
                     <th colspan="4" class="border-1 border-gray-400 text-center align-middle p-2 w-1/4">RATINGS</th>
+
                 </tr>
                 <tr>
                     <th class="border-1 border-gray-400 text-center p-2 w-2/12">Q</th>
@@ -222,7 +232,19 @@ include_once "../user/components/index.php";
                             <td class="ratings-q" data-column="ratings-q" contenteditable="true"><?= htmlspecialchars($item['ratings-q']) ?></td>
                             <td class="ratings-t" data-column="ratings-t" contenteditable="true"><?= htmlspecialchars($item['ratings-t']) ?></td>
                             <td class="ratings-e" data-column="ratings-e" contenteditable="true"><?= htmlspecialchars($item['ratings-e']) ?></td>
-                            <td class="w-700 avg-row"></td>
+                            <td class="w-700 relative">
+                                <p class=" avg-row "></p>
+                                <?php
+                                $functionid = strtoupper(substr($item['core'], 0, 1));
+                                $doc = getIpcrDoc($conn, $ipcr, $functionid);
+                                $doc['filePath'] = "http://localhost/IPCR/HTML/user/uploads/" . $dirName . "/";
+                                ?>
+                                <?php if (!empty($doc)): ?>
+                                    <!-- <a href="../user/uploads/<?php echo $dirName . "/$doc[uploadedDoc]" ?>" target="_blank"> -->
+                                    <i class="fa-solid fa-eye fa-fw text-[#7b8087] absolute right-[-20px] top-[45%] z-50 cursor-pointer" data-doc='<?php echo json_encode($doc); ?>'></i>
+                                    <!-- </a> -->
+                                <?php endif; ?>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
 
@@ -255,7 +277,19 @@ include_once "../user/components/index.php";
                             <td class="ratings-q" data-column="ratings-q" contenteditable="true"><?= htmlspecialchars($item['ratings-q']) ?></td>
                             <td class="ratings-t" data-column="ratings-t" contenteditable="true"><?= htmlspecialchars($item['ratings-t']) ?></td>
                             <td class="ratings-e" data-column="ratings-e" contenteditable="true"><?= htmlspecialchars($item['ratings-e']) ?></td>
-                            <td class="w-700 avg-row"></td>
+                            <td class="w-700 relative">
+                                <p class="avg-row"></p>
+                                <?php
+                                $functionid = strtoupper(substr($item['support'], 0, 1));
+                                $doc = getIpcrDoc($conn, $ipcr, $functionid);
+                                $doc['filePath'] = "http://localhost/IPCR/HTML/user/uploads/" . $dirName . "/";
+                                ?>
+                                <?php if (!empty($doc['uploadedDoc'])): ?>
+                                    <a href="../user/uploads/<?php echo $dirName . "/$doc[uploadedDoc]" ?>" target="_blank">
+                                        <i class="fa-solid fa-eye fa-fw text-[#7b8087] absolute right-[-20px] top-[45%] z-50 cursor-pointer" data-doc='<?php echo json_encode($doc); ?>'></i>
+                                    </a>
+                                <?php endif; ?>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
 
@@ -340,6 +374,10 @@ include_once "../user/components/index.php";
             </div>
         </div>
     </div>
+
+    <div class="overall-average-q hidden"></div>
+    <div class="overall-average-t hidden"></div>
+    <div class="overall-average-e hidden"></div>
 
     <div class="fixed bottom-2 right-5 drag">
         <div class="relative inline-block text-left">
@@ -443,9 +481,124 @@ include_once "../user/components/index.php";
         </div>
     </div>
 
+    <div class="relative z-10 hidden hover" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+        <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+            <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-md">
+                    <!-- Close Button at Top Right -->
+                    <button class="absolute top-0 right-0 p-2 text-gray-500 hover:text-gray-700 focus:outline-none" id="close-modal">
+                        <span class="sr-only">Close</span>
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+
+                    <div class="bg-white p-4 sm:p-6 sm:pb-4">
+                        <div class="sm:flex sm:items-start flex-wrap">
+                            <div class="text-center sm:text-left w-100">
+                                <h3 class="text-base font-semibold leading-6 text-gray-900" id="modal-title">Document Details</h3>
+                                <ul role="list" class="divide-y divide-gray-100 mt-4">
+                                    <!-- Dynamic list items will be appended here -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                        <!-- Optional: You can add another button here if you need it -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
     <script>
-        $('.confirm, .saved, .error').hide();
+        $('.confirm, .saved, .error, .hover').hide();
         $(document).ready(function() {
+
+            // Add hover event to the eye icons
+            $('.fa-eye').on('click', function() {
+                const docData = $(this).data('doc'); // Assuming docData is an array
+                const $list = $('ul[role="list"]'); // Select the list in the modal
+
+                console.log(docData);
+                // Clear any existing list items
+                $list.empty();
+
+                // Loop through each document in docData
+                $.each(docData, function(index, document) {
+                    // Get the keys of the docData object
+                    const keys = Object.keys(docData);
+
+                    // Get the last key in the object
+                    const lastKey = keys[keys.length - 1];
+
+                    // Skip the last item if the current key is the last one
+                    if (index === lastKey) {
+                        return true; // Skip the last element
+                    }
+
+                    const formattedSubmissionDate = new Date(document.dateSubmission).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+
+                    const formattedSubmitDate = new Date(document.dateSubmitted).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+
+                    // Create a new list item
+                    const listItem = `
+                        <li class="flex justify-between gap-x-6 py-1">
+                            <p class="text-sm/6 text-gray-900 font-semibold text-left border-0">${document.uploadedDoc}</p>
+                            <a href="${docData.filePath}${document.uploadedDoc}" target="_blank" class="!text-[#0d6efd] text-sm/6 text-underline">VIEW</a>
+                        </li>
+                        
+                        <li class="flex justify-between gap-x-6 py-1 mb-3">
+                            <div class="flex min-w-0 gap-x-4">
+                                <div class="">
+                                    <p class="text-sm/6 text-gray-900" id="filename">Date of Submission</p>
+                                    <p class="text-sm/6 text-gray-900 text-left" id="filename">Date Submitted</p>
+                                </div>
+                            </div>
+                            <div class="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
+                                <p class="text-sm/6 font-semibold text-gray-900" id="submission">${formattedSubmissionDate}</p>
+                                <p class="text-sm/6 font-semibold text-gray-900" id="submission">${formattedSubmitDate}</p>
+                            </div>
+                        </li>
+                    `;
+
+                    // Append the new list item to the list
+                    $('ul[role="list"]').append(listItem);
+                });
+
+
+
+                // Show the modal with fadeIn effect
+                $('.hover').removeClass('hidden').hide().fadeIn(300);
+            });
+
+            // Close the modal when the close button is clicked
+            $('#close-modal').on('click', function() {
+                $('.hover').fadeOut(200, function() {
+                    $(this).addClass('hidden');
+                });
+            });
+
+            // Optionally, you can close the modal when clicking outside of it
+            $(document).on('click', function(event) {
+                if (!$(event.target).closest('.relative').length && !$(event.target).closest('.fa-eye').length) {
+                    $('.hover').fadeOut(200, function() {
+                        $(this).addClass('hidden');
+                    });
+                }
+            });
+
 
             $('#print').click(function(e) {
                 e.preventDefault();
@@ -523,6 +676,35 @@ include_once "../user/components/index.php";
 
             }
 
+            function calculateTotalOverallAverage() {
+                let totalQ = 0,
+                    totalT = 0,
+                    totalE = 0;
+                let count = 0;
+
+                $('tr.core, tr.support').each(function() {
+                    const ratingQ = parseFloat($(this).find('.ratings-q').text()) || 0;
+                    const ratingT = parseFloat($(this).find('.ratings-t').text()) || 0;
+                    const ratingE = parseFloat($(this).find('.ratings-e').text()) || 0;
+
+                    totalQ += ratingQ;
+                    totalT += ratingT;
+                    totalE += ratingE;
+                    count++;
+                });
+
+                // Calculate overall averages
+                const overallAverageQ = count > 0 ? (totalQ / count).toFixed(2) : '0.00';
+                const overallAverageT = count > 0 ? (totalT / count).toFixed(2) : '0.00';
+                const overallAverageE = count > 0 ? (totalE / count).toFixed(2) : '0.00';
+
+                // Display results
+                $('.overall-average-q').text(overallAverageQ);
+                $('.overall-average-t').text(overallAverageT);
+                $('.overall-average-e').text(overallAverageE);
+            }
+
+            calculateTotalOverallAverage();
 
             $(document).on('input', '.ratings-q, .ratings-t, .ratings-e', function() {
                 const $row = $(this).closest('tr');
@@ -538,6 +720,7 @@ include_once "../user/components/index.php";
                 // Update the avg-row cell
                 $row.find('.avg-row').text(average.toFixed(2)); // Show 2 decimal places
                 calculateOverallAverage();
+                calculateTotalOverallAverage();
             });
 
             $(document).ajaxSend(function() {
@@ -627,7 +810,11 @@ include_once "../user/components/index.php";
                     pmtPos: $('.pmt-pos').text(),
                     rater: $('.rater').first().text(),
                     comments: $('.comments').text(),
+                    q: $('.overall-average-q').text(),
+                    t: $('.overall-average-t').text(),
+                    e: $('.overall-average-e').text(),
                     action: $('.action').text(),
+                    finalRating: $('.final-avg').text(),
                     supervisorid: <?php echo $row2['supervisorid']; ?>, // Adjust as needed
                 };
 
