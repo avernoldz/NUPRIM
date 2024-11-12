@@ -1075,7 +1075,7 @@ function generatePDS($dompdf, $userData, $userChildren, $userEducational, $userE
     </body>
 
     </html>
-<?php
+    <?php
     $html = ob_get_clean();
     $dompdf->loadHtml($html);
 
@@ -1084,4 +1084,239 @@ function generatePDS($dompdf, $userData, $userChildren, $userEducational, $userE
     // $dompdf->render();
 
     // $dompdf->stream("document.pdf", ['Attachment' => false]);
+}
+
+function select($conn, $table, $userid)
+{
+    $sql = "SELECT * FROM $table WHERE userid = '$userid' ORDER BY dateStart DESC";
+    return mysqli_query($conn, $sql);
+}
+
+function formatDate($date)
+{
+    return date('M d, y', strtotime($date)); // Convert to timestamp and format
+}
+
+function getStatusLabel($status)
+{
+    $class = '';
+    switch ($status) {
+        case 'Pending':
+            $class = 'bg-yellow-100 text-yellow-700 border-yellow-300 w-[72px]';
+            break;
+        case 'Approve':
+            $class = 'bg-green-100 text-green-700 border-green-300 w-[72px]';
+            break;
+        case 'Reject':
+            $class = 'bg-red-100 text-red-700 border-red-300 w-[72px] text-center';
+            $status = 'Rejected';
+            break;
+    }
+    return '<label class="form-label ' . $class . ' text-sm rounded p-0.5 mb-0 w-500 px-2 border-1">' . $status . '</label>';
+}
+
+function renderLeaveList($result, $link)
+{
+    if (mysqli_num_rows($result) > 0) {
+        while ($row = mysqli_fetch_array($result)) {
+            $start = formatDate($row['dateStart']);
+            $end = formatDate($row['dateEnd']);
+            $statusLabel = getStatusLabel($row['status']);
+    ?>
+            <div class="bg-[#e4f2ff] data px-3 p-1">
+                <a href="<?php echo $link ?>.php" class="flex align-items-center">
+                    <p><?php echo $start . ' - ' . $end; ?></p>
+                    <p><?php echo $statusLabel; ?></p>
+                </a>
+            </div>
+<?php
+        }
+    } else {
+        echo "<p class='text-center'>No data found</p>";
+    }
+}
+
+function compareLastSemRating($conn, $station, $semester, $userid = null)
+{
+    // Determine the last semester based on the current semester
+    $lastSem = ($semester == '1st Semester') ? '2nd Semester' : '1st Semester';
+
+    // Get average ratings for current semester
+    $avgRatings = getAvgRating($conn, $station, $semester, $userid, '');
+    $avgCurrentSem = !empty($avgRatings) ? $avgRatings[0]['average_rating'] : 0; // Use 'average_rating'
+
+    // Get average ratings for last semester
+    $avgLastRatings = getAvgRating($conn, $station, $lastSem, $userid, '');
+    $avgLastSem = !empty($avgLastRatings) ? $avgLastRatings[0]['average_rating'] : 0; // Use 'average_rating'
+
+    // Calculate the percentage difference
+    if ($avgLastSem != 0) { // Prevent division by zero
+        $percentageDifference = (($avgCurrentSem - $avgLastSem) / $avgLastSem) * 100;
+    } else {
+        $percentageDifference = $avgCurrentSem > 0 ? 100 : 0; // If last rating is 0, current rating is 100% better
+    }
+    // Format the output
+    $percentageDifferenceFormatted = number_format($percentageDifference, 2); // Format to two decimal places
+    $sign = $percentageDifference < 0 ? '' : '+';
+
+    $percentage = "{$sign}{$percentageDifferenceFormatted}%";
+
+    return [
+        'percentage' => $percentage,
+        'avg' => $avgCurrentSem,
+    ];
+}
+
+function getAvgRating($conn, $station, $semester, $userid = null, $percentage = null)
+{
+    // Prepare the base SQL query
+    $sql = "
+        SELECT 
+            ipcr.year, 
+            ipcr.semester, 
+            AVG(ipcr.finalrating) AS average_rating
+        FROM 
+            ipcr 
+        INNER JOIN 
+            account ON ipcr.userid = account.userid
+        INNER JOIN 
+            plantilla ON plantilla.itemNumber = account.itemNumber
+        WHERE 
+            plantilla.station = ?
+            AND ipcr.semester = ?
+    ";
+
+    // Add the userid condition if it is provided
+    if ($userid !== null) {
+        $sql .= " AND ipcr.userid = ?";
+    }
+
+    $sql .= " GROUP BY 
+            ipcr.year, 
+            ipcr.semester
+        ORDER BY 
+            ipcr.year DESC, 
+            ipcr.semester";
+
+    // Limit the results if percentage is provided
+    if ($percentage !== null) {
+        $sql .= " LIMIT 1";
+    }
+
+    if ($stmt = $conn->prepare($sql)) {
+        // Bind parameters
+        if ($userid !== null) {
+            $stmt->bind_param("sss", $station, $semester, $userid);
+        } else {
+            $stmt->bind_param("ss", $station, $semester);
+        }
+
+        $stmt->execute();
+
+        // Fetch the results
+        $result = $stmt->get_result();
+        $ratings = [];
+
+        while ($row = $result->fetch_assoc()) {
+            $ratings[] = $row;
+        }
+
+        // Close the statement
+        $stmt->close();
+        return $ratings; // Return the results
+    } else {
+        echo "Error preparing statement: " . $conn->error;
+        return [];
+    }
+}
+
+function getSupervisorStation($conn, $supervisorid)
+{
+    $query = "SELECT station 
+              FROM account 
+              INNER JOIN plantilla ON account.itemNumber = plantilla.itemNumber 
+              WHERE userid = ?";
+
+    $station = '';
+    $stmt = $conn->prepare($query);
+    if ($stmt) {
+        // Bind the parameter
+        $stmt->bind_param("s", $supervisorid);
+
+        $stmt->execute();
+        $stmt->bind_result($station);
+        if ($stmt->fetch()) {
+            $stmt->close();
+            return $station;
+        } else {
+            $stmt->close();
+            return null;
+        }
+    } else {
+        return null;
+    }
+}
+
+function selectAssessed($conn, $userid)
+{
+    $query = "SELECT * FROM assessed WHERE userid = '$userid'";
+    $res = mysqli_query($conn, $query);
+    $row = mysqli_fetch_array($res);
+
+    return $row;
+}
+
+function getIpcrDoc($conn, $ipcrid, $functionid)
+{
+    $query = "SELECT * 
+              FROM ipcrdoc 
+              WHERE ipcrid = ? AND functionid = ?";
+
+    $stmt = $conn->prepare($query);
+    if ($stmt) {
+        // Bind the parameters
+        $stmt->bind_param("ss", $ipcrid, $functionid); // Adjust the types if necessary
+
+        $stmt->execute();
+        // Get the result
+        $result = $stmt->get_result();
+        $ipcrDocs = []; // Initialize an array to hold all rows
+
+        if ($result->num_rows > 0) {
+            while ($row = $result->fetch_assoc()) {
+                $ipcrDocs[] = $row; // Add each row to the array
+            }
+            $stmt->close();
+            return $ipcrDocs; // Return the array of associative arrays
+        } else {
+            $stmt->close();
+            return []; // Return an empty array if no results
+        }
+    } else {
+        return null; // Return null if the statement fails
+    }
+}
+
+function getAnnouncement($conn, $station)
+{
+    $query = "SELECT *
+    FROM announcement
+    INNER JOIN account ON account.userid = announcement.userid
+    INNER JOIN plantilla ON account.itemNumber = plantilla.itemNumber
+    WHERE plantilla.station = ? ORDER BY announcement.announcementid DESC";
+
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("s", $station);
+    $stmt->execute();
+
+    $result = $stmt->get_result(); // Get the result set
+
+    $announcements = [];
+    while ($row = $result->fetch_assoc()) {
+        $announcements[] = $row; // Store each announcement
+    }
+
+    $stmt->close();
+
+    return $announcements; // Return the array of announcements
 }

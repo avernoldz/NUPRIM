@@ -41,7 +41,7 @@ if (!isset($_SESSION['adminid'])) {
     <div class="main">
         <div class="row">
             <div class="col head">
-                <h1>IPCR /&nbsp;&nbsp;<span class="text-[#737373]">User Logs</span></h1>
+                <h1>NUPRIM /&nbsp;&nbsp;<span class="text-[#737373]">User Logs</span></h1>
             </div>
         </div>
 

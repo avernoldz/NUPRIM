@@ -16,6 +16,9 @@ $pmtPos = $userData['pmtPos'];
 $rater = $userData['rater'];
 $comments = $userData['comments'];
 $action = $userData['action'];
+$q = $userData['q'];
+$t = $userData['t'];
+$e = $userData['e'];
 $finalRating = $userData['finalRating'];
 $status = 'Approved';
 $supervisorid = isset($userData['supervisorid']) ? $userData['supervisorid'] : null;
@@ -37,9 +40,9 @@ $coreJson = json_encode($coreData);
 $supportJson = json_encode($supportData);
 
 // Update the core and support fields in one go
-$sqlUpdate = "UPDATE ipcr SET sdateA = ?, sdateB = ?, edateA = ?, edateB = ?, pmt = ?, pmtPos = ?, rater = ?, comments = ?, action = ?,  core = ?, support = ?, status = ?, finalRating = ? WHERE ipcrid = ?";
+$sqlUpdate = "UPDATE ipcr SET sdateA = ?, sdateB = ?, edateA = ?, edateB = ?, pmt = ?, pmtPos = ?, rater = ?, comments = ?, action = ?,  core = ?, support = ?, status = ?, q = ?, t = ?, e = ?, finalRating = ? WHERE ipcrid = ?";
 $stmtUpdate = $conn->prepare($sqlUpdate);
-$stmtUpdate->bind_param("sssssssssssssi", $sdateA, $sdateB, $edateA, $edateB, $pmt, $pmtPos, $rater, $comments, $action, $coreJson, $supportJson, $status, $finalRating, $ipcrid);
+$stmtUpdate->bind_param("ssssssssssssssssi", $sdateA, $sdateB, $edateA, $edateB, $pmt, $pmtPos, $rater, $comments, $action, $coreJson, $supportJson, $status, $q, $t, $e, $finalRating, $ipcrid);
 $stmtUpdate->execute();
 
 // Return success response

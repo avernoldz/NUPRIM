@@ -25,13 +25,16 @@ $query = "
     INNER JOIN plantilla ON plantilla.itemNumber = account.itemNumber
     WHERE 
         status = 'Approve' 
-        AND dateStart BETWEEN ? AND ? 
-        AND plantilla.station = ?;
-";
+        AND dateStart BETWEEN ? AND ?";
+
+if ($station !== 'PHQ') {
+    $query .= " AND plantilla.station = '$station'";
+}
+
 
 $stmt = $conn->prepare($query);
 if ($stmt) {
-    $stmt->bind_param("sss", $startLastMonth, $endLastMonth, $station);
+    $stmt->bind_param("ss", $startLastMonth, $endLastMonth);
     $stmt->execute();
     $stmt->bind_result($count_preventive_suspension, $count_suspension, $count_detention, $count_termination);
 

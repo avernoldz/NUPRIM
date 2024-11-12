@@ -40,7 +40,7 @@ if (!isset($_SESSION['adminid'])) {
     <div class="main">
         <div class="row">
             <div class="col head">
-                <h1>IPCR /&nbsp;&nbsp;<span class="text-[#737373]">Personnel</span></h1>
+                <h1>NUPRIM /&nbsp;&nbsp;<span class="text-[#737373]">Personnel</span></h1>
             </div>
         </div>
 
@@ -173,11 +173,11 @@ if (!isset($_SESSION['adminid'])) {
     <?php
     $options = ['cost' => 12];
     if (isset($_POST['save'])) {
-        $firstname = $_POST['firstname'];
-        $middlename = $_POST['middlename'];
-        $lastname = $_POST['lastname'];
-        $email = $_POST['email'];
-        $password = $_POST['password'];
+        $firstname = $conn->real_escape_string($_POST['firstname']);
+        $middlename = $conn->real_escape_string($_POST['middlename']);
+        $lastname = $conn->real_escape_string($_POST['lastname']);
+        $email = $conn->real_escape_string($_POST['email']);
+        $password = $conn->real_escape_string($_POST['password']);
 
         $hash_pass = password_hash($password, PASSWORD_BCRYPT, $options);
 

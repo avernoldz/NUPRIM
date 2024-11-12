@@ -1,9 +1,11 @@
 <?php
+
 /**
  * @package dompdf
  * @link    https://github.com/dompdf/dompdf
  * @license http://www.gnu.org/copyleft/lesser.html GNU Lesser General Public License
  */
+
 namespace Dompdf;
 
 use Dompdf\FrameDecorator\AbstractFrameDecorator;
@@ -424,9 +426,9 @@ class Cellmap
             return;
         }
 
-        $col =& $this->get_column($j);
+        $col = &$this->get_column($j);
         $col["used-width"] = $width;
-        $next_col =& $this->get_column($j + 1);
+        $next_col = &$this->get_column($j + 1);
         $next_col["x"] = $col["x"] + $width;
     }
 
@@ -436,11 +438,11 @@ class Cellmap
      */
     public function set_row_height($i, $height)
     {
-        $row =& $this->get_row($i);
+        $row = &$this->get_row($i);
         if ($height > $row["height"]) {
             $row["height"] = $height;
         }
-        $next_row =& $this->get_row($i + 1);
+        $next_row = &$this->get_row($i + 1);
         $next_row["y"] = $row["y"] + $row["height"];
     }
 
@@ -472,7 +474,8 @@ class Cellmap
 
         // A style of `none` has lowest priority independent of its specified
         // width here, as its resolved width is always 0
-        if ($n_style === "hidden" || $n_width > $o_width
+        if (
+            $n_style === "hidden" || $n_width > $o_width
             || ($o_width == $n_width
                 && isset(self::BORDER_STYLE_SCORE[$n_style])
                 && isset(self::BORDER_STYLE_SCORE[$o_style])
@@ -543,7 +546,8 @@ class Cellmap
         $collapse = $this->_table->get_style()->border_collapse === "collapse";
 
         // Recursively add the frames within the table, its row groups and rows
-        if ($frame === $this->_table
+        if (
+            $frame === $this->_table
             || $display === "table-row"
             || in_array($display, TableFrameDecorator::ROW_GROUPS, true)
         ) {
@@ -749,7 +753,7 @@ class Cellmap
             for ($cs = 0; $cs < $colspan; $cs++) {
 
                 // Resolve the frame's width(s) with other cells
-                $col =& $this->get_column($first_col + $cs);
+                $col = &$this->get_column($first_col + $cs);
 
                 // Note: $var is either 'percent' or 'absolute'.  We compare the
                 // requested percentage or absolute values with the existing widths
@@ -768,7 +772,7 @@ class Cellmap
                 // FIXME try to avoid putting this dummy value when table-layout:fixed
                 $inc = ($this->is_layout_fixed() ? 10e-10 : ($frame_min - $min));
                 for ($c = 0; $c < $colspan; $c++) {
-                    $col =& $this->get_column($first_col + $c);
+                    $col = &$this->get_column($first_col + $c);
                     $col["min-width"] += $inc;
                 }
             }
@@ -777,7 +781,7 @@ class Cellmap
                 // FIXME try to avoid putting this dummy value when table-layout:fixed
                 $inc = ($this->is_layout_fixed() ? 10e-10 : ($frame_max - $max) / $colspan);
                 for ($c = 0; $c < $colspan; $c++) {
-                    $col =& $this->get_column($first_col + $c);
+                    $col = &$this->get_column($first_col + $c);
                     $col["max-width"] += $inc;
                 }
             }
@@ -993,9 +997,11 @@ class Cellmap
         $str .= Helpers::pre_r($arr, true);
 
         if (php_sapi_name() == "cli") {
-            $str = strip_tags(str_replace(["<br/>", "<b>", "</b>"],
+            $str = strip_tags(str_replace(
+                ["<br/>", "<b>", "</b>"],
                 ["\n", chr(27) . "[01;33m", chr(27) . "[0m"],
-                $str));
+                $str
+            ));
         }
 
         return $str;

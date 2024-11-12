@@ -46,81 +46,49 @@ if (!$_SESSION['userid']) {
 
     $firstname = getFullName($conn, $userid);
     list($semester, $dateRange) = getSemester();
+    $station = getSupervisorStation($conn, $userid);
+    $announcements = getAnnouncement($conn, $station);
+    $query1 = "SELECT * FROM user WHERE userid = '$userid'";
+    $results1 = mysqli_query($conn, $query1);
+    $rows = mysqli_fetch_array($results1);
 
-    $query = "SELECT year, semester, userid, finalRating FROM ipcr WHERE userid = '$userid'";
-    $res = mysqli_query($conn, $query);
-    $row = mysqli_fetch_array($res);
+    $chart = "SELECT year, semester, userid, finalRating, q, t, e FROM ipcr WHERE userid = '$userid' ORDER BY year DESC LIMIT 6";
+    $resChart = mysqli_query($conn, $chart);
 
-    function select($conn, $table, $userid)
-    {
-        $sql = "SELECT * FROM $table WHERE userid = '$userid' ORDER BY dateStart DESC";
-        return mysqli_query($conn, $sql);
+    // Initialize arrays to hold data
+    $labels = [];
+    $dataArray = [
+        'Final Rating' => [],
+        'Q Rating' => [],
+        'T Rating' => [],
+        'E Rating' => []
+    ];
+
+    // Fetch all rows
+    while ($rowChart = mysqli_fetch_assoc($resChart)) {
+        $parts = explode(' ', $rowChart['semester']);
+        $sem = $parts[0];
+        $labels[] = $sem . " " . $rowChart['year']; // Assuming semester is the label
+        $dataArray['Final Rating'][] = isset($rowChart['finalRating']) ? $rowChart['finalRating'] : 0;
+        $dataArray['Q Rating'][] = isset($rowChart['q']) ? $rowChart['q'] : 0;
+        $dataArray['T Rating'][] = isset($rowChart['t']) ? $rowChart['t'] : 0;
+        $dataArray['E Rating'][] = isset($rowChart['e']) ? $rowChart['e'] : 0;
     }
 
-    function formatDate($date)
-    {
-        return date('M d, y', strtotime($date)); // Convert to timestamp and format
-    }
-
-    function getStatusLabel($status)
-    {
-        $class = '';
-        switch ($status) {
-            case 'Pending':
-                $class = 'bg-yellow-100 text-yellow-700 border-yellow-300 w-[72px]';
-                break;
-            case 'Approve':
-                $class = 'bg-green-100 text-green-700 border-green-300 w-[72px]';
-                break;
-            case 'Reject':
-                $class = 'bg-red-100 text-red-700 border-red-300 w-[72px] text-center';
-                $status = 'Rejected';
-                break;
-        }
-        return '<label class="form-label ' . $class . ' text-sm rounded p-0.5 mb-0 w-500 px-2 border-1">' . $status . '</label>';
-    }
-
-    function renderLeaveList($result, $link)
-    {
-        if (mysqli_num_rows($result) > 0) {
-            while ($row = mysqli_fetch_array($result)) {
-                $start = formatDate($row['dateStart']);
-                $end = formatDate($row['dateEnd']);
-                $statusLabel = getStatusLabel($row['status']);
-    ?>
-                <div class="bg-[#e4f2ff] data px-3 p-1">
-                    <a href="<?php echo $link ?>.php" class="flex align-items-center">
-                        <p><?php echo $start . ' - ' . $end; ?></p>
-                        <p><?php echo $statusLabel; ?></p>
-                    </a>
-                </div>
-    <?php
-            }
-        } else {
-            echo "<p class='text-center'>No data found</p>";
-        }
-    }
+    // Convert to JSON
+    $labelsJson = json_encode($labels);
+    $dataJson = json_encode(array_map(null, ...array_values($dataArray)));
 
     $res2 = select($conn, 'leaves', $userid);
     $res3 = select($conn, '`case`', $userid);
     $res4 = select($conn, '`detail`', $userid);
 
-
-
-    $labels = [];
-    $data = [];
-
-    // Fetch data and populate arrays
-    while ($row = mysqli_fetch_assoc($res)) {
-        $labels[] = $row['semester'] . " " . $row['year']; // Concatenate year and semester
-        $data[] = $row['finalRating'];
-    }
-
+    $thresholdDate = strtotime('-2 days');
     ?>
     <div class="main">
         <div class="row bg">
             <div class="col">
-                <h1>IPCR /&nbsp;&nbsp;<span class="text-[#737373]">Home</span></h1>
+                <h1>NUPRIM /&nbsp;&nbsp;<span class="text-[#737373]">Home</span></h1>
             </div>
         </div>
 
@@ -140,129 +108,183 @@ if (!$_SESSION['userid']) {
         </div>
 
         <div class="grid grid-cols-5 grid-rows-5 gap-4 mt-3">
-            <div class="col-span-3 box row-span-3">
+            <div class="col-span-3 box row-span-3 border border-gray-500">
+                <div class="title mb-2">
+                    <p class="font-medium">IPCR Latest Rating</p>
+                    <p class="text-[11px] text-gray-500">Current Semester Ratings</p>
+                </div>
                 <div>
                     <canvas id="myChart" class="w-100"></canvas>
                 </div>
             </div>
-            <div class="col-span-2 row-span-2 col-start-4">
-                <div class="box h-100">
-                    <h1 class="font-medium ">Filed Leaves</h1>
-                    <div class="w-100 mt-3">
-                        <?php renderLeaveList($res2, 'leaves'); ?>
+            <div class="col-span-2 row-span-3 col-start-4">
+                <div class="box border border-gray-500 h-100 border border-gray-500">
+                    <div class="title mb-2">
+                        <p class="font-medium">Announcement</p>
+                        <p class="text-[11px] text-gray-500">Updates and latest announcements</p>
+                    </div>
+                    <div class="p-3 h-[45vh] overflow-auto">
+                        <?php foreach ($announcements as $announcement):
+                            $isNew = strtotime($announcement['created_at']) >= $thresholdDate;
+                        ?>
+                            <div class="mb-2 ">
+                                <div class="flex justify-content-between">
+                                    <div class="flex items-center">
+                                        <p class="font-semibold"><?php echo htmlspecialchars($announcement['title']); ?></p>
+                                        <?php if ($isNew): ?>
+                                            <span class="ml-2 text-xs text-white bg-red-500 rounded-sm px-2">New</span>
+                                        <?php endif; ?>
+                                    </div>
+                                    <p class="font-semibold"><?php echo date('F j, Y', strtotime(htmlspecialchars($announcement['created_at']))); ?></p>
+                                </div>
+                                <p class="text-gray-600"><?php echo nl2br(htmlspecialchars($announcement['message'])); ?></p>
+                            </div>
+                            <hr class="border-1 border-gray-400 mb-2">
+                        <?php endforeach; ?>
                     </div>
                 </div>
             </div>
-            <div class="col-span-2 row-span-3 col-start-4 row-start-3">
-                <div class="box h-100">
-                    <h1 class="font-medium">Detail Orders</h1>
-                    <div class="w-100 mt-3">
+            <div class="col-span-2 row-span-2 col-start-4 row-start-4">
+                <div class="box border border-gray-500 h-100">
+                    <div class="title mb-2">
+                        <p class="font-medium">Detail Orders</p>
+                        <p class="text-[11px] text-gray-500">User pending and approved orders</p>
+                    </div>
+                    <div class="w-100 mt-3 overflow-auto h-64">
                         <?php renderLeaveList($res4, 'details'); ?>
                     </div>
                 </div>
             </div>
-            <div class="col-span-2 row-span-2 row-start-4">
-                <div class="box h-100">
-                    <h1 class="font-medium">IPCR</h1>
-                    <div class="w-100 mt-3">
-                        <?php
-
-                        $query2 = "SELECT * FROM ipcr WHERE userid = '$userid' ORDER BY created_at DESC";
-                        $results2 = mysqli_query($conn, $query2);
-
-                        if (mysqli_num_rows($results2) > 0) {
-                            while ($row2 = mysqli_fetch_array($results2)) {
-                                $i = 1;
-
-                                if ($row2['status'] == 'Waiting for Approval') {
-                                    $stat = '<label class="form-label bg-yellow-100 text-xs rounded p-1 mb-0 text-yellow-700 w-500 px-2 border-1 border-yellow-300">Pending</label>';
-                                } elseif ($row2['status'] == 'Approved') {
-                                    $stat = '<label class="form-label bg-green-100 text-xs rounded p-1 mb-0 text-green-700 w-500 px-2 border-1 border-green-300">Approved</label>';
-                                } else {
-                                    $stat = '<label class="form-label bg-red-100 text-xs rounded p-1 mb-0 text-red-700 w-500 px-2 border-1 border-red-300">Rejected</label>';
-                                }
-                        ?>
-                                <div class="ipcr col-12 p-2 flex data flex-wrap justify-between items-center bg-[#e4f2ff]">
-                                    <h2 class="font-bold ml-5">IPCR -
-                                        <span class="font-normal"><?php echo emptyData("semester", $row2) . ' (' . emptyData("year", $row2) . ')' ?></span>
-                                    </h2>
-                                    <h2 class="font-bold">
-                                        <span class="font-normal">Rating - </span> <?php echo emptyData("finalRating", $row2) ?>
-                                    </h2>
-                                    <div class="col-3 text-center">
-                                        <span class="mr-5"><?php echo $stat; ?></span>
-                                        <a href="viewipcr.php?ipcrid=<?php echo $row2["ipcrid"] ?>&userid=<?php echo $userid ?>&delete" class=" hover:bg-gray-300 hover:rounded-full p-2"><i class="fa-regular fa-eye fa-fw text-gray-600"></i></a>
-                                    </div>
-                                </div>
-                        <?php
-                                $i++;
-                            }
-                        } else {
-                            echo "<p class='text-center'>No data</p>";
-                        }
-                        ?>
+            <div class="col-span-2 row-span-2 row-start-4 col-start-2">
+                <div class="box border border-gray-500 h-full flex flex-col">
+                    <div class="title mb-2">
+                        <p class="font-medium">Filed Leaves</p>
+                        <p class="text-[11px] text-gray-500">User pending and approved leaves</p>
+                    </div>
+                    <div class="w-100 mt-3 overflow-auto h-64">
+                        <?php renderLeaveList($res2, 'leaves'); ?>
                     </div>
                 </div>
             </div>
-            <div class="row-span-2 col-start-3 row-start-4">
-                <div class="box h-100">
-                    <h1 class="font-medium">Criminal Case</h1>
-                    <div class="w-100 mt-3">
-                        <?php renderLeaveList($res3, 'criminalCase'); ?>
+            <div class="row-span-2 row-start-4  ">
+                <div class="box border border-gray-500 h-full flex flex-col">
+                    <div class="title mb-2">
+                        <p class="font-medium">Percentage Difference Ratings</p>
+                        <p class="text-[11px] text-gray-500" id="dlm">Last Semester and Current Semester</p>
+                    </div>
+
+                    <?php
+                    $percentageRes = compareLastSemRating($conn, $station, $semester, $userid);
+                    $isPositive = strpos($percentageRes['percentage'], '+') !== false; // Check if the difference is positive
+                    ?>
+
+                    <div class="flex-grow flex items-center justify-center">
+                        <h3 class="text-8xl font-bold <?php echo $isPositive ? 'text-green-600' : 'text-red-600'; ?>"><?php echo number_format($percentageRes['avg'], 2) ?></h3>
+                        <h3 class="text-center text-2xl font-bold 
+                                        <?php echo $isPositive ? 'text-green-600' : 'text-red-600'; ?>
+                                        flex items-center">
+                            <span class="<?php echo $isPositive ? 'text-green-600' : 'text-red-600'; ?> mr-2">
+                                <?php echo $isPositive ? '<i class="fa-solid fa-arrow-up-long rotate-45"></i>' : '<i class="fa-solid fa-arrow-down-long rotate-45"></i>'; ?> <!-- Arrow icon -->
+                            </span>
+                            <?php echo $percentageRes['percentage'] ?>
+                        </h3>
                     </div>
                 </div>
             </div>
         </div>
     </div>
     <script>
-        const ctx = document.getElementById('myChart');
+        var labels = <?php echo $labelsJson; ?>; // Use the labels from PHP
+        var data = <?php echo $dataJson; ?>; // This will be a 2D array
 
-        var labels = <?php echo json_encode($labels); ?>;
-        var data = <?php echo json_encode($data); ?>;
+        function createChart(labels, data) {
+            var ctx = document.getElementById('myChart').getContext('2d');
 
-        var colors = [];
-        for (var i = 0; i < data.length; i++) {
-            colors.push(i % 2 === 0 ? '#0055b5' : '#a32424');
-        }
+            var colors = [{
+                    backgroundColor: 'rgba(242, 143, 155, 0.5)',
+                    borderColor: '#f28f9b'
+                }, // Transparent pinkish-red
+                {
+                    backgroundColor: 'rgba(106, 141, 245, 0.5)',
+                    borderColor: '#6a8df5'
+                }, // Transparent blue
+                {
+                    backgroundColor: 'rgba(98, 216, 140, 0.5)',
+                    borderColor: '#62d88c'
+                }, // Transparent green
+                {
+                    backgroundColor: 'rgba(169, 107, 247, 0.5)',
+                    borderColor: '#a96bf7'
+                }, // Transparent purple
+            ];
 
-
-        new Chart(ctx, {
-            type: 'bar',
-            options: {
-                animations: {
-                    tension: {
-                        duration: 1000,
-                        easing: 'linear',
-                        from: 1,
-                        to: 0,
-                        loop: true
-                    }
+            var datasets = [{
+                    label: 'Final Rating',
+                    data: data.map(row => row[0]), // Accessing the first column for Final Rating
+                    backgroundColor: colors[0].backgroundColor,
+                    borderColor: colors[0].borderColor,
+                    barThickness: 25,
+                    borderWidth: 2,
+                    borderRadius: 5,
                 },
-                scales: {
-                    y: { // defining min and max so hiding the dataset does not change scale range
-                        min: 0,
-                        max: 100
+                {
+                    label: 'Q Rating',
+                    data: data.map(row => row[1]), // Accessing the second column for Q Rating
+                    backgroundColor: colors[1].backgroundColor,
+                    borderColor: colors[1].borderColor,
+                    barThickness: 25,
+                    borderWidth: 2,
+                    borderRadius: 5,
+                },
+                {
+                    label: 'T Rating',
+                    data: data.map(row => row[2]), // Accessing the third column for T Rating
+                    backgroundColor: colors[2].backgroundColor,
+                    borderColor: colors[2].borderColor,
+                    barThickness: 25,
+                    borderWidth: 2,
+                    borderRadius: 5,
+                },
+                {
+                    label: 'E Rating',
+                    data: data.map(row => row[3]), // Accessing the fourth column for E Rating
+                    backgroundColor: colors[3].backgroundColor,
+                    borderColor: colors[3].borderColor,
+                    barThickness: 25,
+                    borderWidth: 2,
+                    borderRadius: 5,
+                }
+            ];
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            min: 0,
+                            max: 5 // Adjust as needed
+                        }
+                    },
+                    animations: {
+                        tension: {
+                            duration: 1000,
+                            easing: 'linear',
+                            from: 1,
+                            to: 0,
+                            loop: true
+                        }
                     }
                 }
-            },
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'IPCR Rating',
-                    data: data,
-                    barThickness: 60,
-                    backgroundColor: colors,
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
+            });
+        }
+        createChart(labels, data);
     </script>
+
 </body>
 
 </html>

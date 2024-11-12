@@ -131,6 +131,7 @@ include_once "components/index.php";
         exit();
     }
 
+    $assessed = selectAssessed($conn, $row2['userid']);
     $middlename = htmlspecialchars($row['middlename']);
     $middlename2 = htmlspecialchars($row2['middlename']);
     $middleInitial = !empty($middlename) ? substr($middlename, 0, 1) . '.' : '';
@@ -172,7 +173,7 @@ include_once "components/index.php";
             </div>
             <div>
                 <p class="w-700">Approved by:</p>
-                <p class="mt-4 underline underline-offset-2 rater" contenteditable="true"><?php echo $supervisor ?></p>
+                <p class="mt-4 underline underline-offset-2 rater" contenteditable="true"><?php echo $assessed['a_name']; ?></p>
                 <p>Rater/Immediate Supervisor</p>
             </div>
             <div>
@@ -312,7 +313,7 @@ include_once "components/index.php";
                         </div>
                         <div class="p-2">
                             <p>Assessed by:</p>
-                            <p class="mt-3 underline underline-offset-2 rater" contenteditable="true"><?php echo $supervisor ?></p>
+                            <p class="mt-3 underline underline-offset-2 rater" contenteditable="true"><?php echo $assessed['a_name']; ?></p>
                             <p>Rater</p>
                         </div>
                         <div class="p-2">

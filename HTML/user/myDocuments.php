@@ -124,7 +124,7 @@ include_once "components/index.php";
     <div class="main">
         <div class="row bg">
             <div class="col">
-                <h1>IPCR /&nbsp;&nbsp;<span class="text-[#737373]">My Documents</span></h1>
+                <h1>NUPRIM /&nbsp;&nbsp;<span class="text-[#737373]">My Documents</span></h1>
             </div>
         </div>
 

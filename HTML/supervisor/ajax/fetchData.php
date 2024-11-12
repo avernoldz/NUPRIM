@@ -1,4 +1,5 @@
 <?php
+session_start();
 include "../../../Connections/Include.php";
 include "../components/index.php";
 
@@ -7,6 +8,147 @@ if (isset($_POST['userid']) && isset($_POST['type'])) {
     $type = $_POST['type'];
 
     switch ($type) {
+        case 'overview':
+            $query = "SELECT * FROM user WHERE userid = '$userid'";
+            $result = mysqli_query($conn, $query);
+            $station = getOffice($conn, $_SESSION['supervisorid']);
+
+            list($semester, $year) = getSemester();
+            $query1 = "SELECT * FROM user WHERE userid = '$userid'";
+            $results1 = mysqli_query($conn, $query1);
+            $rows = mysqli_fetch_array($results1);
+
+            $chart = "SELECT year, semester, userid, finalRating, q, t, e FROM ipcr WHERE userid = '$userid' ORDER BY ipcrid DESC LIMIT 1";
+            $resChart = mysqli_query($conn, $chart);
+            $rowChart = mysqli_fetch_assoc($resChart);
+
+            // Check if row exists
+            $labels = ['Final Rating', 'Q Rating', 'T Rating', 'E Rating'];
+
+            // Prepare data arrays
+            $dataArray = [
+                'Final Rating' => isset($rowChart['finalRating']) ? $rowChart['finalRating'] : 0,
+                'Q Rating' => isset($rowChart['q']) ? $rowChart['q'] : 0,
+                'T Rating' => isset($rowChart['t']) ? $rowChart['t'] : 0,
+                'E Rating' => isset($rowChart['e']) ? $rowChart['e'] : 0,
+            ];
+
+            // Convert to JSON
+            $labelsJson = json_encode(array_keys($dataArray)); // ['Final Rating', 'Q Rating', 'T Rating', 'E Rating']
+            $dataJson = json_encode(array_values($dataArray));
+
+            $res2 = select($conn, 'leaves', $userid);
+            $res3 = select($conn, '`case`', $userid);
+            $res4 = select($conn, '`detail`', $userid);
+
+?>
+            <div class="grid grid-cols-5 grid-rows-5 gap-4 mt-3">
+                <div class="col-span-3 box row-span-3 border border-gray-500">
+                    <div class="title mb-2">
+                        <p class="font-medium">IPCR Latest Rating</p>
+                        <p class="text-[11px] text-gray-500">Current Semester Ratings</p>
+                    </div>
+                    <div>
+                        <canvas id="myChart" class="w-100"></canvas>
+                    </div>
+                </div>
+                <div class="col-span-2 row-span-2 col-start-4">
+                    <div class="box border border-gray-500 h-100 border border-gray-500">
+                        <div class="title mb-2">
+                            <p class="font-medium">Filed Leaves</p>
+                            <p class="text-[11px] text-gray-500">User pending and approved leaves</p>
+                        </div>
+                        <div class="w-100 mt-3 overflow-auto h-64">
+                            <?php renderLeaveList($res2, 'leaves'); ?>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-span-2 row-span-3 col-start-4 row-start-3">
+                    <div class="box border border-gray-500 h-100">
+                        <div class="title mb-2">
+                            <p class="font-medium">Detail Orders</p>
+                            <p class="text-[11px] text-gray-500">User pending and approved orders</p>
+                        </div>
+                        <div class="w-100 mt-3 overflow-auto h-64">
+                            <?php renderLeaveList($res4, 'details'); ?>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-span-2 row-span-2 row-start-4 col-start-2">
+                    <div class="box border border-gray-500 h-full flex flex-col">
+                        <div class="title mb-2">
+                            <p class="font-medium">IPCR</p>
+                            <p class="text-[11px] text-gray-500">User pending and approved IPCR</p>
+                        </div>
+                        <div class="w-100 mt-3 overflow-auto h-64">
+                            <?php
+
+                            $query2 = "SELECT * FROM ipcr WHERE userid = '$userid' ORDER BY created_at DESC";
+                            $results2 = mysqli_query($conn, $query2);
+
+                            if (mysqli_num_rows($results2) > 0) {
+                                while ($row2 = mysqli_fetch_array($results2)) {
+                                    $i = 1;
+
+                                    if ($row2['status'] == 'Waiting for Approval') {
+                                        $stat = '<label class="form-label bg-yellow-100 text-xs rounded p-1 mb-0 text-yellow-700 w-500 px-2 border-1 border-yellow-300">Pending</label>';
+                                    } elseif ($row2['status'] == 'Approved') {
+                                        $stat = '<label class="form-label bg-green-100 text-xs rounded p-1 mb-0 text-green-700 w-500 px-2 border-1 border-green-300">Approved</label>';
+                                    } else {
+                                        $stat = '<label class="form-label bg-red-100 text-xs rounded p-1 mb-0 text-red-700 w-500 px-2 border-1 border-red-300">Rejected</label>';
+                                    }
+                            ?>
+                                    <div class="ipcr col-12 p-2 flex data flex-wrap justify-between items-center bg-gray-100">
+                                        <h2 class="font-bold ml-5">IPCR -
+                                            <span class="font-normal"><?php echo emptyData("semester", $row2) . ' (' . emptyData("year", $row2) . ')' ?></span>
+                                        </h2>
+                                        <h2 class="font-bold">
+                                            <span class="font-normal">Rating - </span> <?php echo emptyData("finalRating", $row2) ?>
+                                        </h2>
+                                        <div class="col-3 text-center">
+                                            <span class="mr-5"><?php echo $stat; ?></span>
+                                            <a href="generate.php?ipcr=<?php echo $row2["ipcrid"] ?>&userid=<?php echo $userid ?>" class=" hover:bg-gray-300 hover:rounded-full p-2"><i class="fa-regular fa-eye fa-fw text-gray-600"></i></a>
+                                        </div>
+                                    </div>
+                            <?php
+                                    $i++;
+                                }
+                            } else {
+                                echo "<p class='text-center'>No data</p>";
+                            }
+                            ?>
+                        </div>
+                    </div>
+                </div>
+                <div class="row-span-2 row-start-4  ">
+                    <div class="box border border-gray-500 h-full flex flex-col">
+                        <div class="title mb-2">
+                            <p class="font-medium">Percentage Difference Ratings</p>
+                            <p class="text-[11px] text-gray-500" id="dlm">Last Semester and Current Semester</p>
+                        </div>
+
+                        <?php
+                        $percentageRes = compareLastSemRating($conn, $station, $semester, $userid);
+                        $isPositive = strpos($percentageRes['percentage'], '+') !== false; // Check if the difference is positive
+                        ?>
+
+                        <div class="flex-grow flex items-center justify-center">
+                            <h3 class="text-8xl font-bold <?php echo $isPositive ? 'text-green-600' : 'text-red-600'; ?>"><?php echo number_format($percentageRes['avg'], 2) ?></h3>
+                            <h3 class="text-center text-2xl font-bold 
+                                        <?php echo $isPositive ? 'text-green-600' : 'text-red-600'; ?>
+                                        flex items-center">
+                                <span class="<?php echo $isPositive ? 'text-green-600' : 'text-red-600'; ?> mr-2">
+                                    <?php echo $isPositive ? '<i class="fa-solid fa-arrow-up-long rotate-45"></i>' : '<i class="fa-solid fa-arrow-down-long rotate-45"></i>'; ?> <!-- Arrow icon -->
+                                </span>
+                                <?php echo $percentageRes['percentage'] ?>
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+<?php
+            break;
+
         case 'personal':
             $query = "SELECT * FROM user WHERE userid = '$userid'";
             $result = mysqli_query($conn, $query);

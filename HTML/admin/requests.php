@@ -34,19 +34,27 @@ if (!isset($_SESSION['adminid'])) {
     $adminid = $_SESSION['adminid'];
     $active = "Requests";
     $log = 0;
+    require __DIR__ . "../../../vendor/autoload.php";
     include "../../Connections/Include.php";
     include "components/components.php";
+    include "../supervisor/components/sendSMS.php";
     include "sideBar.php";
+
+    if (isset($_GET['alert']) && isset($_GET['message'])) {
+        $alertType = $_GET['alert'];
+        $alertMessage = urldecode($_GET['message']);
+        showToastr($alertMessage, $alertType);
+    }
 
     ?>
     <div class="main">
         <div class="row">
             <div class="col head">
-                <h1>IPCR /&nbsp;&nbsp;<span class="text-[#737373]">Account Requests</span></h1>
+                <h1>NUPRIM /&nbsp;&nbsp;<span class="text-[#737373]">Account Requests</span></h1>
             </div>
         </div>
 
-        <div class="row bg-[#ffffff] rounded-[4px] mt-3 shadow-[0_3px_5px_-3px_rgba(0,0,0,0.1)] p-[16px]">
+        <div class="row bg-[#ffffff] rounded-[4px] mt-3 shadow-[0_3px_5px_-3px_rgba(0,0,0,0.1)] p-[16px] content">
             <table id="table" class="display border-[1px] cell-border" style="width:100%">
                 <thead class="bg-[var(--black-900)] text-[var(--black-400)]">
                     <tr>
@@ -89,7 +97,7 @@ if (!isset($_SESSION['adminid'])) {
         </div>
 
         <form action="" method="POST" id="myForm">
-            <div class="relative z-10 confirm" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div class="relative z-10 confirm hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
                 <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
                 <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
                     <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
@@ -111,7 +119,7 @@ if (!isset($_SESSION['adminid'])) {
                             </div>
                             <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
                                 <button type="button" id="approve" class=" inline-flex w-full ml-3 justify-center bg-green-600 rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-green-500 tranisition-all duration-200 sm:mt-0 sm:w-auto">Save</button>
-                                <!-- <button type="button" class=" inline-flex w-full ml-3 justify-center bg-red-600 rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-red-500 tranisition-all duration-200 sm:mt-0 sm:w-auto">Reject</button> -->
+                                <button type="button" id="reject" class=" inline-flex w-full ml-3 justify-center bg-red-600 rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-red-500 tranisition-all duration-200 sm:mt-0 sm:w-auto">Reject</button>
                                 <button type="button" id="cancel" class=" inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-green-300 sm:mt-0 sm:w-auto">Cancel</button>
                             </div>
                         </div>
@@ -130,18 +138,64 @@ if (!isset($_SESSION['adminid'])) {
         $insert = "UPDATE account SET isArchive = TRUE WHERE userid = '$id'";
 
         if (mysqli_query($conn, $insert)) {
-            echo "<script>window.location.href='requests.php?adminid=$adminid&alert=1';</script>";
+
+            $insert3 = "INSERT INTO service(userid)
+                        VALUES('$id')";
+            mysqli_query($conn, $insert3);
+
+            $selectPhoneNumber = "SELECT phonenumber FROM account WHERE userid = '$id'";
+            $result = mysqli_query($conn, $selectPhoneNumber);
+            $row = mysqli_fetch_assoc($result);
+
+            $phoneNumber = $row['phonenumber'];
+            if (strpos($phoneNumber, '0') === 0) {
+                $phoneNumber = '+63' . substr($phoneNumber, 1);
+            }
+
+            $smsMessage = "Your account request has been approved.";
+
+            if (sendSms($phoneNumber, $smsMessage)) {
+                echo "<script>window.location.href='requests.php?alert=success&message=Account approved and SMS sent';</script>";
+            } else {
+                echo "<script>window.location.href='requests.php?alert=success&message=Account approved but SMS failed';</script>";
+            }
+        } else {
+            echo mysqli_error($conn);
+        }
+    }
+
+    if (isset($_GET['reject'])) {
+        $adminid = $_SESSION['adminid'];
+        $id = $_GET['id'];
+
+        $insert = "UPDATE account SET isArchive = 3 WHERE userid = '$id'";
+
+        if (mysqli_query($conn, $insert)) {
+            $selectPhoneNumber = "SELECT phonenumber FROM account WHERE userid = '$id'";
+            $result = mysqli_query($conn, $selectPhoneNumber);
+            $row = mysqli_fetch_assoc($result);
+
+            $phoneNumber = $row['phonenumber'];
+            if (strpos($phoneNumber, '0') === 0) {
+                $phoneNumber = '+63' . substr($phoneNumber, 1);
+            }
+
+            $smsMessage = "Your account request has been declined.";
+
+            if (sendSms($phoneNumber, $smsMessage)) {
+                echo "<script>window.location.href='requests.php?alert=success&message=Account approved and SMS sent';</script>";
+            } else {
+                echo "<script>window.location.href='requests.php?alert=success&message=Account approved but SMS failed';</script>";
+            }
         } else {
             echo mysqli_error($conn);
         }
     }
 
     ?>
-
+    <script src="../JS/app.js"></script>
     <script>
-        $('.confirm').hide();
         $(document).ready(function() {
-
             let id = '';
             $('#table').DataTable({
                 order: []
@@ -157,6 +211,12 @@ if (!isset($_SESSION['adminid'])) {
                 window.location.href = 'requests.php?approve&id=' + id;
             });
 
+
+            $('#reject').click(function() {
+                window.location.href = 'requests.php?reject&id=' + id;
+            });
+
+
             // Close modal on Cancel button click
             $('#cancel').click(function() {
                 $('.confirm').fadeOut(200, function() {
@@ -166,6 +226,8 @@ if (!isset($_SESSION['adminid'])) {
                     $(this).addClass('hidden');
                 });
             });
+
+
 
         })
     </script>

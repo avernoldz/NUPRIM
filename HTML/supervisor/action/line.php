@@ -31,7 +31,11 @@ $queryCurrentMonth = "SELECT COUNT(*) AS total FROM leaves
                         WHERE status = 'Approve' 
                         AND dateStart 
                         BETWEEN '$startCurrentMonth' AND '$endCurrentMonth'
-                        AND plantilla.station = '$station'";
+                       ";
+if ($station !== 'PHQ') {
+    $queryCurrentMonth .= " AND plantilla.station = '$station'";
+}
+
 $resultCurrentMonth = mysqli_query($conn, $queryCurrentMonth);
 $rowCurrentMonth = mysqli_fetch_assoc($resultCurrentMonth);
 $totalCurrentMonth = $rowCurrentMonth['total'];
@@ -54,8 +58,10 @@ function getWeeklyApprovedLeaves($conn, $startDate, $endDate, $station)
                     INNER JOIN plantilla ON plantilla.itemNumber = account.itemNumber
                     WHERE status = 'Approve' 
                     AND dateStart 
-                    BETWEEN '$weekStart' AND '$weekEnd'
-                    AND plantilla.station = '$station'";
+                    BETWEEN '$weekStart' AND '$weekEnd'";
+        if ($station !== 'PHQ') {
+            $query .= " AND plantilla.station = '$station'";
+        }
         $result = mysqli_query($conn, $query);
         $data = mysqli_fetch_assoc($result);
 

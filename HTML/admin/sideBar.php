@@ -1,6 +1,5 @@
 <?php
-
-$requestC = "SELECT COUNT(userid) as total FROM account WHERE isArchive = FALSE";
+$requestC = "SELECT COUNT(userid) as total FROM account WHERE isArchive = FALSE AND type = 'User'";
 $rc = mysqli_query($conn, $requestC);
 $rw2 = mysqli_fetch_array($rc);
 

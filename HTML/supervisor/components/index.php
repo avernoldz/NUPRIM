@@ -40,6 +40,15 @@ function logAction($mysqli, $userid, $action, $account_type)
     $stmt->close();
 }
 
+function showToastr($message, $type)
+{
+    echo '<script>
+        var alertMessage = "' . addslashes($message) . '";
+        if (alertMessage) {
+                toastr.' . $type . '(alertMessage);
+        }
+    </script>';
+}
 
 function getFileType($filename)
 {
@@ -69,18 +78,59 @@ function selectName($conn, $userid)
     return $name;
 }
 
+function selectAssessed($conn, $userid)
+{
+    $query = "SELECT * FROM assessed WHERE userid = '$userid'";
+    $res = mysqli_query($conn, $query);
+    $row = mysqli_fetch_array($res);
+
+    return $row;
+}
 
 function countPendingIPCR($conn, $station)
 {
+    // Prepare and execute the query for IPCR count
+    $ipcr_count = '';
+    $leave_count = '';
     $query = "SELECT COUNT(ipcr.status) AS ipcr_count
-                FROM ipcr
-                INNER JOIN account ON account.userid = ipcr.userid
+              FROM ipcr
+              INNER JOIN account ON account.userid = ipcr.userid
+              INNER JOIN plantilla ON account.itemNumber = plantilla.itemNumber
+              WHERE ipcr.status = 'Waiting for Approval'";
+
+    if ($station !== 'PHQ') {
+        $query .= " AND plantilla.station = '$station'";
+    }
+
+    $stmt = $conn->prepare($query);
+    $stmt->execute();
+    $stmt->bind_result($ipcr_count);
+    $stmt->fetch();
+    $stmt->close();
+
+    // Prepare and execute the query for leaves count
+    $query2 = "SELECT COUNT(leaves.status) AS leave_count
+                FROM leaves
+                INNER JOIN account ON account.userid = leaves.userid
                 INNER JOIN plantilla ON account.itemNumber = plantilla.itemNumber
-                WHERE ipcr.status = 'Waiting for Approval' AND plantilla.station = '$station'";
-    $res = mysqli_query($conn, $query);
-    $row = mysqli_fetch_array($res);
-    return $row['ipcr_count'];
+                WHERE leaves.status = 'Pending'";
+
+    if ($station !== 'PHQ') {
+        $query2 .= " AND plantilla.station = '$station'";
+    }
+    $stmt2 = $conn->prepare($query2);
+    $stmt2->execute();
+    $stmt2->bind_result($leave_count);
+    $stmt2->fetch();
+    $stmt2->close();
+
+    // Return both counts as an associative array
+    return [
+        'ipcr_count' => $ipcr_count,
+        'leave_count' => $leave_count,
+    ];
 }
+
 
 function getOffice($conn, $id)
 {
@@ -137,29 +187,21 @@ function getSemester()
     return [$semester, $dateRange]; // Return an array with both values
 }
 
-function fetchPersonnelReports($conn, $userid, $type)
+function fetchPersonnelReports($conn, $userid, $from, $to)
 {
-
-    if ($type === 'Weekly') {
-        $interval = '7 DAY';
-        $dateCondition = "dateStart BETWEEN NOW() - INTERVAL $interval AND NOW()";
-    } else { // Monthly case
-        $dateCondition = "dateStart BETWEEN DATE_FORMAT(NOW() - INTERVAL 1 MONTH, '%Y-%m-01') AND LAST_DAY(NOW() - INTERVAL 1 MONTH)";
+    // Ensure $from and $to are in valid date format (YYYY-MM-DD).
+    if (empty($from) || empty($to) || !strtotime($from) || !strtotime($to)) {
+        return "Invalid date range provided.";
     }
+
+    // Build the date condition using the dynamic 'from' and 'to' values.
+    $dateCondition = "dateStart BETWEEN '$from' AND '$to'";
 
     $queries = [
         'leaves' => "SELECT * FROM leaves WHERE userid = '$userid' AND status = 'Approve' AND $dateCondition",
         'details' => "SELECT * FROM detail WHERE userid = '$userid' AND status = 'Approve' AND $dateCondition",
         'cases' => "SELECT * FROM `case` WHERE userid = '$userid' AND status = 'Approve' AND $dateCondition"
     ];
-
-    // $interval = ($type === 'Weekly') ? '7 DAY' : '30 DAY';
-
-    // $queries = [
-    //     'leaves' => "SELECT * FROM leaves WHERE userid = '$userid' AND status = 'Approve' AND dateStart BETWEEN NOW() - INTERVAL $interval AND NOW() ",
-    //     'details' => "SELECT * FROM detail WHERE userid = '$userid' AND status = 'Approve' AND dateStart BETWEEN NOW() - INTERVAL $interval AND NOW() ",
-    //     'cases' => "SELECT * FROM `case` WHERE userid = '$userid' AND status = 'Approve'  AND dateStart BETWEEN NOW() - INTERVAL $interval AND NOW() "
-    // ];
 
     $results = [];
     foreach ($queries as $key => $query) {
@@ -168,6 +210,7 @@ function fetchPersonnelReports($conn, $userid, $type)
 
     return $results;
 }
+
 
 function getDateRange($type)
 {
@@ -208,18 +251,53 @@ function getDateRange($type)
     ];
 }
 
-function compareLastSemRating($conn, $station, $semester)
+function getDateRangeD($from, $to)
+{
+    // Ensure the 'from' and 'to' dates are valid DateTime objects
+    $fromDate = new DateTime($from);
+    $toDate = new DateTime($to);
+
+    // Format the dates for output
+    $fromFormatted = $fromDate->format('M d, Y');
+    $toFormatted = $toDate->format('M d, Y');
+
+    // Generate a simplified version for internal use (for comparison, etc.)
+    $fromFormatted2 = $fromDate->format('dmY');
+    $toFormatted2 = $toDate->format('dmY');
+
+    // Construct the range output
+    $dateRange = "$fromFormatted - $toFormatted";
+
+    return [
+        'dateRange' => $dateRange,
+        'startDateFormatted2' => $fromFormatted2,
+        'endDateFormatted2' => $toFormatted2,
+    ];
+}
+
+function compareLastSemRating($conn, $station, $semester, $userid = null)
 {
     // Determine the last semester based on the current semester
-    $lastSem = ($semester == '1st Semester') ? '2nd Semester' : '1st Semester';
+    // $lastSem = ($semester == '1st Semester') ? '2nd Semester' : '1st Semester';
 
     // Get average ratings for current semester
-    $avgRatings = getAvgRating($conn, $station, $semester, '');
-    $avgCurrentSem = !empty($avgRatings) ? $avgRatings[0]['average_rating'] : 0; // Use 'average_rating'
+    $results =  getAvgRating($conn, $station, $semester, $userid, '');
 
+    if (count($results) >= 2) {
+        // Save the first row in a variable
+        $avgRatings = $results[0]['average_rating'];
+        // Save the second row in another variable
+        $avgLastRatings = $results[1]['average_rating'];
+    } else {
+        // Handle the case where there are not enough rows
+        $avgRatings = null;
+        $avgLastRatings = null;
+    }
+    // $avgRatings = getAvgRating($conn, $station, $semester, $userid, '');
+    $avgCurrentSem = !empty($avgRatings) ? $avgRatings : 0; // Use 'average_rating'
     // Get average ratings for last semester
-    $avgLastRatings = getAvgRating($conn, $station, $lastSem, '');
-    $avgLastSem = !empty($avgLastRatings) ? $avgLastRatings[0]['average_rating'] : 0; // Use 'average_rating'
+    // $avgLastRatings = getAvgRating($conn, $station, $semester, $userid, '');
+    $avgLastSem = !empty($avgLastRatings) ? $avgLastRatings : 0; // Use 'average_rating'
 
     // Calculate the percentage difference
     if ($avgLastSem != 0) { // Prevent division by zero
@@ -281,7 +359,11 @@ function getPersonnel($conn, $station)
               FROM user
               INNER JOIN account ON user.userid = account.userid
               INNER JOIN plantilla ON plantilla.itemNumber = account.itemNumber
-              WHERE plantilla.station = '$station' AND account.isArchive = TRUE";
+              WHERE account.isArchive = TRUE";
+    if ($station !== 'PHQ') {
+        $query .= " AND plantilla.station = '$station'";
+    }
+
     $results = mysqli_query($conn, $query);
     return mysqli_fetch_all($results, MYSQLI_ASSOC);
 }
@@ -343,6 +425,7 @@ function getList($conn, $station)
                     eligibility.eligibility AS eligibility_status,
                     s.permanency,
                     s.entered,
+                    s.appStatus AS apptStatus,
                     MaxTraining.dateStart AS training_start_date,
                     MaxTraining.dateEnd AS training_end_date,
                     MaxEligibility.dateStart AS eligibility_start_date,
@@ -363,18 +446,23 @@ function getList($conn, $station)
                 LEFT JOIN eligibility ON eligibility.userid = user.userid AND eligibility.dateOfExam = MaxEligibility.dateOfExam
                 LEFT JOIN service s ON s.userid = user.userid 
                 LEFT JOIN HighestEducation edu ON edu.userid = user.userid 
-                WHERE plantilla.station = '$station' AND account.isArchive = TRUE;";
+                WHERE account.isArchive = TRUE";
+
+    if ($station !== 'PHQ') {
+        $query .= "  AND plantilla.station = '$station'";
+    }
+
     $results = mysqli_query($conn, $query);
     return mysqli_fetch_all($results, MYSQLI_ASSOC);
 }
 
-function fetchCombinedReports($conn, $personnel, $type)
+function fetchCombinedReports($conn, $personnel, $from, $to)
 {
     $combinedReports = [];
 
     foreach ($personnel as $person) {
         $userid = $person['userid'];
-        $report = fetchPersonnelReports($conn, $userid, $type);
+        $report = fetchPersonnelReports($conn, $userid, $from, $to);
 
         foreach (['details', 'leaves', 'cases'] as $category) {
             foreach ($report[$category] as $leave) {
@@ -405,12 +493,17 @@ function getRecapData($conn, $station)
 
     $sql = "SELECT DISTINCT userid, sgrade FROM plantilla 
                 INNER JOIN account ON account.itemNumber = plantilla.itemNumber
-                WHERE station = ? AND account.isArchive = TRUE ORDER BY sgrade DESC";
+                WHERE account.isArchive = TRUE ";
+
+    if ($station !== 'PHQ') {
+        $sql .= "  AND plantilla.station = '$station'";
+    }
+
+    $sql .= " ORDER BY sgrade DESC";
 
     $sgradeData = [];
 
     if ($stmt = $conn->prepare($sql)) {
-        $stmt->bind_param("s", $station);
         $stmt->execute();
         $results = $stmt->get_result();
         $sgradeData = $results->fetch_all(MYSQLI_ASSOC);
@@ -431,9 +524,13 @@ function getRecapSickLeave($conn, $station, $type, $table, $column)
             FROM plantilla 
             INNER JOIN account ON account.itemNumber = plantilla.itemNumber
             INNER JOIN $table ON $table.userid = account.userid
-            WHERE plantilla.station = ? 
-            AND account.isArchive = TRUE 
-            AND $table.$type = ?
+            WHERE account.isArchive = TRUE ";
+
+    if ($station !== 'PHQ') {
+        $sql .= "  AND plantilla.station = '$station'";
+    }
+
+    $sql .= " AND $table.$type = ?
             AND $table.status = 'Approve'
             AND (
                 ($table.dateStart BETWEEN '$firstDayLastMonth' AND '$lastDayLastMonth') OR
@@ -445,7 +542,7 @@ function getRecapSickLeave($conn, $station, $type, $table, $column)
     $sgradeData = [];
 
     if ($stmt = $conn->prepare($sql)) {
-        $stmt->bind_param("ss", $station, $column);
+        $stmt->bind_param("s", $column);
         $stmt->execute();
         $results = $stmt->get_result();
         $sgradeData = $results->fetch_all(MYSQLI_ASSOC);
@@ -459,9 +556,9 @@ function getRecapSickLeave($conn, $station, $type, $table, $column)
 
 
 
-function getAvgRating($conn, $station, $semester, $percentage = null)
+function getAvgRating($conn, $station, $semester, $userid = null, $percentage = null)
 {
-    // Prepare the SQL query
+    // Prepare the base SQL query
     $sql = "
         SELECT 
             ipcr.year, 
@@ -473,23 +570,49 @@ function getAvgRating($conn, $station, $semester, $percentage = null)
             account ON ipcr.userid = account.userid
         INNER JOIN 
             plantilla ON plantilla.itemNumber = account.itemNumber
-        WHERE 
-            plantilla.station = ?
-            AND ipcr.semester = ? -- Filter for the specific semester
-        GROUP BY 
+    ";
+
+    if ($station !== 'PHQ') {
+        $sql .= " WHERE plantilla.station = '$station'";
+    }
+
+    // Add the userid condition if it is provided
+    if ($percentage === null) {
+        $sql .= " AND ipcr.semester = '$semester'";
+    }
+
+    // Add the userid condition if it is provided
+    if ($userid !== null) {
+        $sql .= " AND ipcr.userid = '$userid'";
+    }
+
+    $sql .= " GROUP BY 
             ipcr.year, 
             ipcr.semester
         ORDER BY 
             ipcr.year DESC, 
-            ipcr.semester
-    ";
+            ipcr.semester DESC";
 
+    // Limit the results if percentage is provided
     if ($percentage !== null) {
-        $sql .=  " LIMIT 1";
+        $sql .= " LIMIT 2";
     }
 
     if ($stmt = $conn->prepare($sql)) {
-        $stmt->bind_param("ss", $station, $semester);
+        // Bind parameters
+
+        // if ($percentage !== null && $userid !== null) {
+        //     $stmt->bind_param("ss", $station, $userid);
+        // } elseif ($userid !== null) {
+        //     $stmt->bind_param("sss", $station, $semester, $userid);
+        // } elseif ($percentage !== null) {
+        //     $stmt->bind_param("s", $station);
+        // } elseif ($station !== 'PHQ') {
+        //     $stmt->bind_param("s", $station);
+        // } else {
+        //     $stmt->bind_param("ss", $station, $semester);
+        // }
+
         $stmt->execute();
 
         // Fetch the results
@@ -509,7 +632,6 @@ function getAvgRating($conn, $station, $semester, $percentage = null)
     }
 }
 
-
 function renderLeaveRow($absent, $station, $index)
 {
     echo "<tr>
@@ -526,7 +648,7 @@ function renderLeaveRow($absent, $station, $index)
 }
 
 
-function generateMonthlyAbsences($dompdf, $type, $combinedReports, $getDateRange, $name, $row1, $station)
+function generateMonthlyAbsences($dompdf = null, $type, $combinedReports, $getDateRange, $name, $row1, $station)
 {
     ob_start();
 ?>
@@ -574,7 +696,7 @@ function generateMonthlyAbsences($dompdf, $type, $combinedReports, $getDateRange
                     <p style="margin: 0; font-weight: bold;"><?php echo $getDateRange['dateRange'] ?></p>
                 </div>
                 <div class="regular">
-                    <p style=" font-size: 11px;">LAGUNA POLICE PROVINCIAL OFFICE</p>
+                    <p style=" font-size: 11px;"><?php echo $station ?> POLICE PROVINCIAL OFFICE</p>
                 </div>
                 <div>
                     <table style="font-size: 11px;">
@@ -710,19 +832,24 @@ function generateMonthlyAbsences($dompdf, $type, $combinedReports, $getDateRange
 
     </html>
 
-<?php
+    <?php
     $html = ob_get_clean();
-    $dompdf->loadHtml($html);
-    $dompdf->setPaper('A4', 'portrait');
-    $dompdf->render();
-    $dompdf->stream("document.pdf", ['Attachment' => false]);
-    // return $dompdf->output();
+
+    if ($dompdf !== null) {
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+        // $dompdf->stream("document.pdf", ['Attachment' => false]);
+        return $dompdf->output();
+    } else {
+        return $html;
+    }
 }
 
-function generateWeeklyAbsences($dompdf, $type, $combinedReports, $getDateRange, $name, $row1, $station)
+function generateWeeklyAbsences($dompdf = null, $type, $combinedReports, $getDateRange, $name, $row1, $station)
 {
     ob_start();
-?>
+    ?>
     <!DOCTYPE html>
     <html lang="en">
 
@@ -764,7 +891,7 @@ function generateWeeklyAbsences($dompdf, $type, $combinedReports, $getDateRange,
                 <div class="header">
                     <p style="margin: 0;">RESTRICTED</p>
                     <p style="margin: 0;">CONSOLIDATED WEEKLY PNP PERSONNEL ACCOUNTING REPORT</p>
-                    <p style="margin: 0; font-weight: bold;">LAGUNA POLICE PROVINCIAL OFFICE</p>
+                    <p style="margin: 0; font-weight: bold;"><?php echo $station ?> POLICE PROVINCIAL OFFICE</p>
                     <p style="margin: 0;"><?php echo $getDateRange['dateRange'] ?></p>
                 </div>
                 <div class="regular">
@@ -830,19 +957,24 @@ function generateWeeklyAbsences($dompdf, $type, $combinedReports, $getDateRange,
     </body>
 
     </html>
-<?php
+    <?php
     $html = ob_get_clean();
-    $dompdf->loadHtml($html);
-    $dompdf->setPaper('A4', 'portrait');
-    $dompdf->render();
-    $dompdf->stream("document.pdf", ['Attachment' => false]);
-    // return $dompdf->output();
+
+    if ($dompdf !== null) {
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+        // $dompdf->stream("document.pdf", ['Attachment' => false]);
+        return $dompdf->output();
+    } else {
+        return $html;
+    }
 }
 
 
-function saveReport($dompdf, $type, $getDateRange, $supervisorid, $conn)
+function saveReport($station, $dompdf, $type, $getDateRange, $supervisorid, $conn)
 {
-    $fileName = $type . 'Report_' . $getDateRange['startDateFormatted2'] . '.pdf';
+    $fileName = $station . '_' . $type . 'Report_' . $getDateRange['startDateFormatted2'] . '.pdf';
     $outputPath = '../reports/' . $fileName;
 
     // Save the PDF to the specified path
@@ -864,10 +996,10 @@ function saveReport($dompdf, $type, $getDateRange, $supervisorid, $conn)
     }
 }
 
-function generateAplha($dompdf, $type, $list, $getDateRange, $name, $row1, $station)
+function generateAplha($dompdf = null, $type, $list, $getDateRange, $name, $row1, $station)
 {
     ob_start();
-?>
+    ?>
     <!DOCTYPE html>
     <html lang="en">
 
@@ -944,7 +1076,7 @@ function generateAplha($dompdf, $type, $list, $getDateRange, $name, $row1, $stat
                                 <tr>
                                     <td><?php echo $i ?></td>
                                     <td><?php echo htmlspecialchars($data['sgrade']) ?></td>
-                                    <td><?php echo htmlspecialchars($data['status']) ?></td>
+                                    <td><?php echo htmlspecialchars($data['apptStatus']) ?></td>
                                     <td><?php echo htmlspecialchars($data['lastname']) ?></td>
                                     <td><?php echo htmlspecialchars($data['firstname']) ?></td>
                                     <td><?php echo htmlspecialchars($data['middlename']) ?></td>
@@ -981,19 +1113,23 @@ function generateAplha($dompdf, $type, $list, $getDateRange, $name, $row1, $stat
     </body>
 
     </html>
-<?php
+    <?php
     $html = ob_get_clean();
-    $dompdf->loadHtml($html);
-    $dompdf->setPaper('A4', 'landscape');
-    $dompdf->render();
-    $dompdf->stream("document.pdf", ['Attachment' => false]);
-    // return $dompdf->output();
+    if ($dompdf !== null) {
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'landscape');
+        $dompdf->render();
+        // $dompdf->stream("document.pdf", ['Attachment' => false]);
+        return $dompdf->output();
+    } else {
+        return $html;
+    }
 }
 
-function generateRoster($dompdf, $type, $list, $getDateRange, $name, $row1, $station)
+function generateRoster($dompdf = null, $type, $list, $getDateRange, $name, $row1, $station)
 {
     ob_start();
-?>
+    ?>
     <!DOCTYPE html>
     <html lang="en">
 
@@ -1036,7 +1172,7 @@ function generateRoster($dompdf, $type, $list, $getDateRange, $name, $row1, $sta
                     <p style="margin: 0;">Republic of the Philippines</p>
                     <p style="margin: 0;">NATIONAL POLICE COMMISSION</p>
                     <p style="margin: 0; font-weight: bold;">PHILIPPINE NATIONAL POLICE,POLICE REGIONAL OFFICE 4A</p>
-                    <p style="margin: 0; font-weight: bold;">LAGUNA POLICE PROVINCIAL OFFICE</p>
+                    <p style="margin: 0; font-weight: bold;"><?php echo $station ?> POLICE PROVINCIAL OFFICE</p>
                     <p></p>
                 </div>
                 <div class="regular">
@@ -1075,7 +1211,7 @@ function generateRoster($dompdf, $type, $list, $getDateRange, $name, $row1, $sta
                                     <td><?php echo htmlspecialchars($data['middlename']) ?></td>
                                     <td><?php echo htmlspecialchars($data['position']) ?></td>
                                     <td><?php echo htmlspecialchars($data['lastPosition']) ?></td>
-                                    <td><?php echo htmlspecialchars($data['status']) ?></td>
+                                    <td><?php echo htmlspecialchars($data['apptStatus']) ?></td>
                                     <td><?php echo htmlspecialchars($data['sgrade']) ?></td>
                                     <td><?php echo number_format(htmlspecialchars($data['msalary']), 2) ?></td>
                                     <td><?php echo !empty($data['lastPromotion']) ? date('d M, Y', strtotime($data['lastPromotion'])) : null; ?></td>
@@ -1104,19 +1240,23 @@ function generateRoster($dompdf, $type, $list, $getDateRange, $name, $row1, $sta
     </body>
 
     </html>
-<?php
+    <?php
     $html = ob_get_clean();
-    $dompdf->loadHtml($html);
-    $dompdf->setPaper('A4', 'landscape');
-    $dompdf->render();
-    $dompdf->stream("document.pdf", ['Attachment' => false]);
-    // return $dompdf->output();
+    if ($dompdf !== null) {
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+        // $dompdf->stream("document.pdf", ['Attachment' => false]);
+        return $dompdf->output();
+    } else {
+        return $html;
+    }
 }
 
-function generateAnnexA($dompdf, $type, $list, $getDateRange, $name, $row1, $station)
+function generateAnnexA($dompdf = null, $type, $list, $getDateRange, $name, $row1, $station)
 {
     ob_start();
-?>
+    ?>
     <!DOCTYPE html>
     <html lang="en">
 
@@ -1161,7 +1301,7 @@ function generateAnnexA($dompdf, $type, $list, $getDateRange, $name, $row1, $sta
                     <p style="margin: 0;">Republic of the Philippines</p>
                     <p style="margin: 0;">NATIONAL POLICE COMMISSION</p>
                     <p style="margin: 0; font-weight: bold;">PHILIPPINE NATIONAL POLICE,POLICE REGIONAL OFFICE 4A</p>
-                    <p style="margin: 0; font-weight: bold;">LAGUNA POLICE PROVINCIAL OFFICE</p>
+                    <p style="margin: 0; font-weight: bold;"><?php echo $station ?> POLICE PROVINCIAL OFFICE</p>
                     <p style="margin: 0;font-weight: bold; font-size: 11px; text-align:center; "><?php echo "As of " . $getDateRange['dateRange'] ?></p>
                 </div>
                 <div>
@@ -1191,7 +1331,7 @@ function generateAnnexA($dompdf, $type, $list, $getDateRange, $name, $row1, $sta
                                     <td><?php echo htmlspecialchars($data['itemNumber']) ?></td>
                                     <td><?php echo htmlspecialchars($data['position']) ?></td>
                                     <td><?php echo htmlspecialchars($data['sgrade']) ?></td>
-                                    <td><?php echo htmlspecialchars($data['status']) ?></td>
+                                    <td><?php echo htmlspecialchars($data['apptStatus']) ?></td>
                                     <td><?php echo htmlspecialchars($data['eligibility_status']) ?></td>
                                     <td><?php echo htmlspecialchars($data['highest_degree']) ?></td>
                                     <td><?php echo "REMARKS" ?></td>
@@ -1217,19 +1357,23 @@ function generateAnnexA($dompdf, $type, $list, $getDateRange, $name, $row1, $sta
     </body>
 
     </html>
-<?php
+    <?php
     $html = ob_get_clean();
-    $dompdf->loadHtml($html);
-    $dompdf->setPaper('A4', 'landscape');
-    $dompdf->render();
-    $dompdf->stream("document.pdf", ['Attachment' => false]);
-    // return $dompdf->output();
+    if ($dompdf !== null) {
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+        // $dompdf->stream("document.pdf", ['Attachment' => false]);
+        return $dompdf->output();
+    } else {
+        return $html;
+    }
 }
 
 function generateAnnexB($dompdf, $type, $list, $getDateRange, $name, $row1, $station)
 {
     ob_start();
-?>
+    ?>
     <!DOCTYPE html>
     <html lang="en">
 
@@ -1340,8 +1484,8 @@ function generateAnnexB($dompdf, $type, $list, $getDateRange, $name, $row1, $sta
     $dompdf->loadHtml($html);
     $dompdf->setPaper('A4', 'landscape');
     $dompdf->render();
-    $dompdf->stream("document.pdf", ['Attachment' => false]);
-    // return $dompdf->output();
+    // $dompdf->stream("document.pdf", ['Attachment' => false]);
+    return $dompdf->output();
 }
 
 function renderRow($label, $data, $margin = null)
@@ -1448,7 +1592,7 @@ function generateRecap($dompdf, $type, $list, $getDateRange, $name, $row1, $stat
                     <p style="margin: 0;font-weight: bold; font-size: 13px; text-align:center; "><?php echo "As of " . $getDateRange['dateRange'] ?></p>
                 </div>
                 <div>
-                    <p style="font-size: 12px;">Unit: Laguna Provincial Police Office</p>
+                    <p style="font-size: 12px;">Unit: <?php echo $station ?> Provincial Police Office</p>
                     <table style="font-size: 11px;">
                         <thead>
                             <tr>
@@ -1545,11 +1689,131 @@ function generateRecap($dompdf, $type, $list, $getDateRange, $name, $row1, $stat
     </body>
 
     </html>
-<?php
+    <?php
     $html = ob_get_clean();
-    $dompdf->loadHtml($html);
-    $dompdf->setPaper('A4', 'landscape');
-    $dompdf->render();
-    $dompdf->stream("document.pdf", ['Attachment' => false]);
-    // return $dompdf->output();
+    if ($dompdf !== null) {
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+        // $dompdf->stream("document.pdf", ['Attachment' => false]);
+        return $dompdf->output();
+    } else {
+        return $html;
+    }
+}
+
+function renderLeaveList($result, $link = null)
+{
+    if ($link !== null) {
+        $link = $link . '.php';
+    } else {
+        $link = '#';
+    }
+
+    if (mysqli_num_rows($result) > 0) {
+        while ($row = mysqli_fetch_array($result)) {
+            $start = formatDate($row['dateStart']);
+            $end = formatDate($row['dateEnd']);
+            $statusLabel = getStatusLabel($row['status']);
+    ?>
+            <div class="bg-gray-100 data px-3 p-1">
+                <a href="<?php echo $link ?>" class="flex align-items-center">
+                    <p><?php echo $start . ' - ' . $end; ?></p>
+                    <p><?php echo $statusLabel; ?></p>
+                </a>
+            </div>
+<?php
+        }
+    } else {
+        echo "<p class='text-center'>No data found</p>";
+    }
+}
+
+
+
+function getStatusLabel($status)
+{
+    $class = '';
+    switch ($status) {
+        case 'Pending':
+            $class = 'bg-yellow-100 text-yellow-700 border-yellow-300 w-[72px]';
+            break;
+        case 'Approve':
+            $class = 'bg-green-100 text-green-700 border-green-300 w-[72px]';
+            break;
+        case 'Reject':
+            $class = 'bg-red-100 text-red-700 border-red-300 w-[72px] text-center';
+            $status = 'Rejected';
+            break;
+    }
+    return '<label class="form-label ' . $class . ' text-sm rounded p-0.5 mb-0 w-500 px-2 border-1">' . $status . '</label>';
+}
+
+function select($conn, $table, $userid)
+{
+    $sql = "SELECT * FROM $table WHERE userid = '$userid' ORDER BY dateStart DESC";
+    return mysqli_query($conn, $sql);
+}
+
+function formatDate($date)
+{
+    return date('M d, y', strtotime($date)); // Convert to timestamp and format
+}
+
+
+function getAnnouncement($conn, $station)
+{
+    $query = "SELECT *
+    FROM announcement
+    INNER JOIN account ON account.userid = announcement.userid
+    INNER JOIN plantilla ON account.itemNumber = plantilla.itemNumber";
+
+    if ($station !== 'PHQ') {
+        $query .= " WHERE plantilla.station = '$station'";
+    }
+
+    $query .= " ORDER BY announcement.announcementid DESC";
+
+    $stmt = $conn->prepare($query);
+    $stmt->execute();
+
+    $result = $stmt->get_result(); // Get the result set
+
+    $announcements = [];
+    while ($row = $result->fetch_assoc()) {
+        $announcements[] = $row; // Store each announcement
+    }
+
+    $stmt->close();
+
+    return $announcements; // Return the array of announcements
+}
+
+function getPhonenumbers($conn, $station)
+{
+    $query = "SELECT phonenumber, firstname, lastname
+              FROM account
+              INNER JOIN plantilla ON account.itemNumber = plantilla.itemNumber
+              INNER JOIN user ON account.userid = user.userid
+              WHERE isArchive = TRUE AND account.type = 'User'";
+
+    if ($station !== 'PHQ') {
+        $query .= " AND plantilla.station = '$station'";
+    }
+
+    $stmt = $conn->prepare($query);
+    $stmt->execute();
+
+    $result = $stmt->get_result(); // Get the result set
+
+    $phonenumbers = []; // Initialize an array for phone numbers
+    $names = [];
+    while ($row = $result->fetch_assoc()) {
+        $phonenumbers[] = $row['phonenumber']; // Store each phone number as a string
+        $names[] = $row['firstname'] . " " . $row['lastname']; // Store name
+    }
+
+    $stmt->close();
+
+    return ['phonenumbers' => $phonenumbers, 'names' => $names];
 }

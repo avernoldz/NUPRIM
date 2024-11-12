@@ -30,8 +30,9 @@ session_regenerate_id();
     }
 
     if (isset($_GET['logout-user'])) {
-        // session_destroy();
+        logAction($conn, $_SESSION['userid'], 'Logged Out', $_SESSION['type']);
         unset($_SESSION['userid']);
+        session_destroy();
         header("Location:index.php");
     }
 
@@ -43,7 +44,8 @@ session_regenerate_id();
         <div class="col-6">
             <div class="row sign-in">
                 <div class="col sign" style="width:60%">
-                    <h1 class="mb-4 w-700" style="font-size: 32px;">Sign in</h1>
+                    <h1 class="mb-4 w-700" style="font-size: 32px;">NUPRIM</h1>
+                    <h2 class="w-700 mb-4 h4 ">Sign in</h2>
                     <?php
                     if (isset($_GET['login-first'])) {
                         $errorMessage = "You must log in first to continue.";
@@ -96,19 +98,6 @@ session_regenerate_id();
 
                     <form action="" method="POST" class="w-full flex flex-col flex-wrap content-center items-end ">
 
-                        <div class="div w-9/12 grid grid-cols-2 grid-rows-1 gap-4">
-                            <div class="mb-4 w-12/12">
-                                <label for="firstname" class="form-label">Firstname</label>
-                                <input type="text" class="form-control bg-[#ebebeb] p-[0.75rem] w-full"
-                                    placeholder="Example" required name="firstname">
-                            </div>
-                            <div class="mb-4 w-12/12">
-                                <label for="lastname" class="form-label">Lastname</label>
-                                <input type="text" class="form-control bg-[#ebebeb] p-[0.75rem] w-full"
-                                    placeholder="Example" required name="lastname">
-                            </div>
-                        </div>
-
                         <div class="mb-4 w-9/12">
                             <label for="username" class="form-label">Username</label>
                             <input type="text" class="form-control bg-[#ebebeb] p-[0.75rem] w-full"
@@ -123,11 +112,18 @@ session_regenerate_id();
                             </div>
 
                             <div class="mb-4 w-12/12">
-                                <label for="itemNumber" class="form-label">Item Number</label>
+                                <label for="phonenumber" class="form-label">Phone Number</label>
                                 <input type="text" class="form-control bg-[#ebebeb] p-[0.75rem] w-full"
-                                    placeholder="name@example.com" required name="itemNumber">
+                                    placeholder="09354971246" required name="phonenumber">
                             </div>
                         </div>
+
+                        <div class="mb-4 w-9/12">
+                            <label for="itemNumber" class="form-label">Item Number</label>
+                            <input type="text" class="form-control bg-[#ebebeb] p-[0.75rem] w-full"
+                                placeholder="CASUB-ADA4-28-2004" required name="itemNumber">
+                        </div>
+
 
                         <div class="mb-4 w-9/12">
                             <label for="password" class="form-label">Password</label>
@@ -195,23 +191,18 @@ session_regenerate_id();
 
         $username = mysqli_escape_string($conn, $_POST['username']);
         $itemNumber = mysqli_escape_string($conn, $_POST['itemNumber']);
+        $phonenumber = mysqli_escape_string($conn, $_POST['phonenumber']);
         $email = mysqli_escape_string($conn, $_POST['email']);
         $password = mysqli_escape_string($conn, $_POST['password']);
         $type = 'User';
 
-        $sql = "INSERT INTO account(username, email, password, type, itemNumber) VALUES (?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO account(username, email, password, type, phonenumber, itemNumber) VALUES (?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($sql);
 
         $hash_pass = password_hash($password, PASSWORD_BCRYPT, $options);
-        $stmt->bind_param("sssss", $username, $email, $hash_pass, $type, $itemNumber);
+        $stmt->bind_param("ssssss", $username, $email, $hash_pass, $type, $phonenumber, $itemNumber);
 
         if ($stmt->execute()) {
-            $id = mysqli_insert_id($conn);
-
-            $insert3 = "INSERT INTO service(userid)
-                        VALUES('$id')";
-            mysqli_query($conn, $insert3);
-
             $errorMessage = "Account created. Please wait for admin approval";
             echo "<script>window.location.href='index.php?alert=success&message=" . urlencode($errorMessage) . "';</script>";
         }

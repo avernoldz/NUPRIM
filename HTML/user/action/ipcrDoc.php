@@ -4,12 +4,13 @@ include "../../../Connections/Include.php";
 include "../components/index.php";
 
 
-if (isset($_POST['save'])) {
+if (isset($_POST['save']) && isset($_POST['function'])) {
 
     $userid = mysqli_real_escape_string($conn, $_POST['userid']);
     $dateSubmitted = mysqli_real_escape_string($conn, $_POST['dateSubmitted']);
     $dateSubmission = mysqli_real_escape_string($conn, $_POST['dateSubmission']);
     $ipcrid = mysqli_real_escape_string($conn, $_POST['ipcrid']);
+    $function = mysqli_real_escape_string($conn, $_POST['function']);
 
     $firstName = selectName($conn, $userid);
 
@@ -21,6 +22,7 @@ if (isset($_POST['save'])) {
 
     // Check if file type is allowed
     if (!in_array($file['type'], $allowedTypes)) {
+        echo "<script>window.location.href='../ipcrDocuments.php?userid=$userid&alert=error&message=Only JPG, PNG, DOCX, PDF, and XLSX files are allowed.';</script>";
         die("Error: Only JPG, PNG, DOCX, PDF, and XLSX files are allowed.");
     }
 
@@ -43,18 +45,20 @@ if (isset($_POST['save'])) {
 
     if (move_uploaded_file($file['tmp_name'], $targetFile)) {
 
-        $insert = "INSERT INTO ipcrdoc (userid, dateSubmitted, dateSubmission, ipcrid, uploadedDoc) 
-        VALUES ('$userid', '$dateSubmitted', '$dateSubmission', '$ipcrid', '$firstName')";
+        $insert = "INSERT INTO ipcrdoc (userid, dateSubmitted, dateSubmission, ipcrid, functionid, uploadedDoc) 
+        VALUES ('$userid', '$dateSubmitted', '$dateSubmission', '$ipcrid', '$function', '$uploadDoc')";
 
         if (mysqli_query($conn, $insert)) {
             logAction($conn, $_SESSION['userid'], 'Upload file for ipcr', $_SESSION['type']);
             echo "<script>window.location.href='../ipcrDocuments.php?userid=$userid&alert=success&message=Saved Successfully';</script>";
         } else {
-            echo mysqli_error($conn);
+            echo "<script>window.location.href='../ipcrDocuments.php?userid=$userid&alert=error&message=Sorry, there was an error uploading your file.';</script>";
         }
     } else {
-        echo "Sorry, there was an error uploading your file.";
+        echo "<script>window.location.href='../ipcrDocuments.php?userid=$userid&alert=error&message=Sorry, there was an error uploading your file.';</script>";
     }
+} else {
+    echo "<script>window.location.href='../ipcrDocuments.php?userid=$userid&alert=error&message=Sorry, there was an error uploading your file.';</script>";
 }
 
 if (isset($_GET['delete'])) {

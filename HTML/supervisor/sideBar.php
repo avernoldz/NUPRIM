@@ -30,8 +30,10 @@ $count = countPendingIPCR($conn, $station);
                         <li class="navi <?php if ($active == "Personnel") {
                                             echo "active";
                                         } ?>">
-                            <i class="fa-solid fa-user fa-fw"></i>
-                            <span>Personnel</span>
+                            <div class="flex">
+                                <span class="!ml-0"><i class="fa-solid fa-user fa-fw mr-2"></i> Personnel</span>
+                                <span class="!ml-0 bg-red-600 rounded-full w-6 h-6 text-center font-medium"><?php echo $count['leave_count'] ?></span>
+                            </div>
                         </li>
                     </a>
                     <a
@@ -41,17 +43,102 @@ $count = countPendingIPCR($conn, $station);
                                         } ?>">
                             <div class="flex">
                                 <span class="!ml-0"><i class="fa-solid fa-file fa-fw mr-2"></i> IPCR</span>
-                                <span class="!ml-0 bg-red-600 rounded-full w-6 h-6 text-center font-medium"><?php echo $count ?></span>
+                                <span class="!ml-0 bg-red-600 rounded-full w-6 h-6 text-center font-medium"><?php echo $count['ipcr_count'] ?></span>
                             </div>
                         </li>
                     </a>
-                    <a
+                    <!-- <a
                         href="report.php">
                         <li class="navi <?php if ($active == "Reports") {
                                             echo "active";
                                         } ?>">
                             <div class="flex">
                                 <span class="!ml-0"><i class="fa-solid fa-folder-open fa-fw mr-2"></i> Reports</span>
+                            </div>
+                        </li>
+                    </a> -->
+                    <a
+                        href="#" id="profile-drop">
+                        <li class="navi <?php if ($active == "My Profile") {
+                                            echo "active";
+                                        }
+                                        if ($on == "hon") {
+                                            echo "act";
+                                        }; ?>">
+                            <i class="fa-solid fa-folder-open fa-fw"></i>
+                            <span>Reports</span>
+                        </li>
+                    </a>
+
+                    <ul class="drop-profile <?php if ($on == "hon") {
+                                                echo "hon";
+                                            } ?>">
+                        <a
+                            href="report.php">
+                            <li class="navi nav-link active <?php if ($active == "DPAR") {
+                                                                echo "active";
+                                                            } ?>" data-type="Weekly">
+                                <i class="fa-solid fa-circle-info fa-fw"></i> <span>DPAR</span>
+                            </li>
+                        </a>
+                        <a
+                            href="report.php">
+                            <li class="navi nav-link  <?php if ($active == "Monthly") {
+                                                            echo "active";
+                                                        } ?>" data-type="Monthly">
+                                <i class="fa-solid fa-location-dot fa-fw"></i> <span>Monthly</span>
+                            </li>
+                        </a>
+                        <a
+                            href="report.php">
+                            <li class="navi nav-link <?php if ($active == "Recap") {
+                                                            echo "active";
+                                                        } ?>" data-type="Recap">
+                                <i class="fa-solid fa-people-group fa-fw"></i> <span>Recap</span>
+                            </li>
+                        </a>
+                        <a
+                            href="report.php">
+                            <li class="navi nav-link <?php if ($active == "Alpha") {
+                                                            echo "active";
+                                                        } ?>" data-type="Alpha">
+                                <i class="fa-solid fa-book-open fa-fw"></i> <span>Alpha</span>
+                            </li>
+                        </a>
+                        <a
+                            href="report.php">
+                            <li class="navi nav-link <?php if ($active == "Roster") {
+                                                            echo "active";
+                                                        } ?>" data-type="Roster">
+                                <i class="fa-solid fa-chart-simple fa-fw"></i> <span>Roster</span>
+                            </li>
+                        </a>
+                        <a
+                            href="report.php">
+                            <li class="navi nav-link <?php if ($active == "Annex") {
+                                                            echo "active";
+                                                        } ?>" data-type="Annex">
+                                <i class="fa-solid fa-file fa-fw"></i> <span>Annex A</span>
+                            </li>
+                        </a>
+                        <a
+                            href="report.php">
+                            <li class="navi nav-link <?php if ($active == "Files") {
+                                                            echo "active";
+                                                        } ?>" data-type="Files">
+                                <i class="fa-solid fa-folder-open fa-fw"></i> <span>Files</span>
+                            </li>
+                        </a>
+
+                    </ul>
+
+                    <a
+                        href="announcement.php">
+                        <li class="navi <?php if ($active == "Announcement") {
+                                            echo "active";
+                                        } ?>">
+                            <div class="flex">
+                                <span class="!ml-0"><i class="fa-solid fa-bell fa-fw mr-2"></i> Announcement</span>
                             </div>
                         </li>
                     </a>

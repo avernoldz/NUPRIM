@@ -12,6 +12,37 @@
 
 	$options = ['cost' => 12,];
 
+	$assessed = "CREATE TABLE `assessed`(
+		id int AUTO_INCREMENT PRIMARY KEY,
+		s_name varchar(250) NOT NULL,
+		s_rank varchar(250) NOT NULL,
+		s_designation varchar(250) NOT NULL,
+		a_name varchar(250) NOT NULL,
+		a_rank varchar(250) NOT NULL,
+		a_designation varchar(250) NOT NULL,
+		userid INT NOT NULL
+		)";
+	if (mysqli_query($conn, $assessed)) {
+		echo "Table assessed";
+	} else {
+		echo "Error creating Table: " . mysqli_error($conn);
+	}
+
+
+	$announcement = "CREATE TABLE `announcement`(
+		announcementid int AUTO_INCREMENT PRIMARY KEY,
+		title varchar(250) NOT NULL,
+		message TEXT NOT NULL,
+		userid INT NOT NULL,
+		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+		)";
+
+	if (mysqli_query($conn, $announcement)) {
+		echo "Table announcement";
+	} else {
+		echo "Error creating Table: " . mysqli_error($conn);
+	}
+
 
 	$serviceHistory = "CREATE TABLE `serviceHistory`(
 		id int AUTO_INCREMENT PRIMARY KEY,
@@ -48,6 +79,7 @@
 		docid int AUTO_INCREMENT PRIMARY KEY,
 		userid int NOT NULL,
 		ipcrid int NOT NULL,
+		functionid int NOT NULL,
 		dateSubmission DATE NOT NULL,
 		dateSubmitted DATE NOT NULL,
 		uploadedDoc varchar(100)  NULL
@@ -150,6 +182,9 @@
 		action varchar(250) NULL,
 		supervisorid int NOT NULL,
 		status varchar(50) NULL,
+		q decimal(20,2) NULL,
+		t decimal(20,2) NULL,
+		e decimal(20,2) NULL,
 		finalRating decimal(20,2) NULL,
 		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 		)";
@@ -214,6 +249,7 @@
 		type varchar(50) NOT NULL,
 		itemNumber varchar(50) NOT NULL,
 		email varchar(50) NOT NULL,
+		phonenumber varchar(50) NOT NULL,
 		password varchar(100) NOT NULL,
 		isArchive BOOLEAN DEFAULT FALSE
 		)";

@@ -19,7 +19,7 @@ if (!$_SESSION['supervisorid']) {
     <title>Home</title>
     <style>
         body {
-            background: #e9edf4;
+            background: #efefef;
         }
 
         #calendar {
@@ -70,7 +70,10 @@ if (!$_SESSION['supervisorid']) {
                     FROM user
                     INNER JOIN account ON user.userid = account.userid
                     INNER JOIN plantilla ON plantilla.itemNumber = account.itemNumber
-                    WHERE plantilla.station = '$station' AND account.isArchive = TRUE";
+                    WHERE account.isArchive = TRUE";
+    if ($station !== 'PHQ') {
+        $query2 .= " AND plantilla.station = '$station'";
+    }
 
     $results2 = mysqli_query($conn, $query2);
     $row2 = mysqli_fetch_array($results2);
@@ -82,16 +85,24 @@ if (!$_SESSION['supervisorid']) {
             INNER JOIN user ON leaves.userid = user.userid 
             INNER JOIN account ON leaves.userid = account.userid
             INNER JOIN plantilla ON plantilla.itemNumber = account.itemNumber
-            WHERE plantilla.station = '$station'
-            AND leaves.status = 'Approve'";
+            WHERE leaves.status = 'Approve'";
+
+    if ($station !== 'PHQ') {
+        $sql .= " AND plantilla.station = '$station'";
+    }
+
     $result3 = $conn->query($sql);
 
     $sql2 = "SELECT leaves.*, firstname, lastname FROM leaves 
             INNER JOIN user ON leaves.userid = user.userid 
             INNER JOIN account ON leaves.userid = account.userid
             INNER JOIN plantilla ON plantilla.itemNumber = account.itemNumber
-            WHERE plantilla.station = '$station'
-            AND leaves.status = 'Pending'";
+            WHERE leaves.status = 'Pending'";
+
+    if ($station !== 'PHQ') {
+        $sql2 .= " AND plantilla.station = '$station'";
+    }
+
     $result4 = mysqli_query($conn, $sql2);
 
     $queryip = "SELECT 
@@ -103,16 +114,20 @@ if (!$_SESSION['supervisorid']) {
                 INNER JOIN 
                     account ON ipcr.userid = account.userid
                 INNER JOIN 
-                    plantilla ON plantilla.itemNumber = account.itemNumber
-                WHERE 
-                    plantilla.station = '$station'
-                GROUP BY 
+                    plantilla ON plantilla.itemNumber = account.itemNumber";
+
+    if ($station !== 'PHQ') {
+        $queryip .= " WHERE plantilla.station = '$station'";
+    }
+
+    $queryip .= " GROUP BY 
                     ipcr.year, 
                     ipcr.semester
                 ORDER BY 
                     ipcr.year, 
-                    ipcr.semester;
-                ";
+                    ipcr.semester
+                LIMIT 6;";
+
     $resip = mysqli_query($conn, $queryip);
 
     $labelsIp = [];
@@ -145,7 +160,7 @@ if (!$_SESSION['supervisorid']) {
     <div class="main">
         <div class="row bg">
             <div class="col">
-                <h1>IPCR /&nbsp;&nbsp;<span class="text-[#737373]">Dashboard</span></h1>
+                <h1>NUPRIM /&nbsp;&nbsp;<span class="text-[#737373]">Dashboard</span></h1>
             </div>
         </div>
 
@@ -161,12 +176,11 @@ if (!$_SESSION['supervisorid']) {
                         <path fill-rule="evenodd" d="M6.75 2.25A.75.75 0 0 1 7.5 3v1.5h9V3A.75.75 0 0 1 18 3v1.5h.75a3 3 0 0 1 3 3v11.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V7.5a3 3 0 0 1 3-3H6V3a.75.75 0 0 1 .75-.75Zm13.5 9a1.5 1.5 0 0 0-1.5-1.5H5.25a1.5 1.5 0 0 0-1.5 1.5v7.5a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5v-7.5Z" clip-rule="evenodd" />
                     </svg>
                 </span>
-
             </div>
         </div>
 
 
-        <div class="grid grid-cols-5 grid-rows-5 gap-4 mt-3 h-[80vh]">
+        <div class="grid grid-cols-5 grid-rows-5 gap-3 mt-3 h-[80vh]">
             <div class="box">
                 <div class="row items-center">
                     <div class="col flex flex-col">
@@ -232,12 +246,12 @@ if (!$_SESSION['supervisorid']) {
                     </h3>
                 </div>
             </div>
-            <div class="col-start-1 box row-start-4 row-span-2">
+            <div class="col-start-1 box row-start-4 row-span-2 overflow-auto">
                 <div>
                     <p class="font-medium">Leave Requests</p>
                     <p class="text-[11px] text-gray-500" id="elm">Filed leaves waiting for approval</p>
                 </div>
-                <div class="flex-grow flex items-center justify-center mt-3 text-[12px] data">
+                <div class="flex-grow flex items-center justify-center mt-3 text-[12px] data overflow-auto h-52">
                     <?php
                     if (mysqli_num_rows($result4) > 0) {
                         while ($row = mysqli_fetch_array($result4)) {
@@ -298,6 +312,7 @@ if (!$_SESSION['supervisorid']) {
             calendar.render();
         });
 
+        // Line Chart
         fetch('action/line.php')
             .then(response => response.json())
             .then(data => {
@@ -315,30 +330,25 @@ if (!$_SESSION['supervisorid']) {
                                 label: 'Last Month',
                                 data: chartData[0],
                                 fill: false,
-                                borderColor: '#2563eb',
+                                borderColor: 'rgba(106, 141, 245, 1)', // Transparent blue border color
+                                backgroundColor: 'rgba(106, 141, 245, 0.5)', // Transparent blue background
                                 tension: 0.1,
-                                borderWidth: 4
+                                borderWidth: 2,
+                                borderRadius: 5,
                             },
                             {
                                 label: 'Current Month',
                                 data: chartData[1],
                                 fill: false,
-                                borderColor: '#e11d48', // Different color for distinction
+                                borderColor: 'rgba(242, 143, 155, 1)', // Transparent pinkish-red border color
+                                backgroundColor: 'rgba(242, 143, 155, 0.5)', // Transparent pinkish-red background
                                 tension: 0.1,
-                                borderWidth: 4
+                                borderWidth: 2,
+                                borderRadius: 5,
                             }
                         ]
                     },
                     options: {
-                        animations: {
-                            tension: {
-                                duration: 1000,
-                                easing: 'linear',
-                                from: 1,
-                                to: 0,
-                                loop: true
-                            }
-                        },
                         scales: {
                             y: {
                                 beginAtZero: true
@@ -349,12 +359,14 @@ if (!$_SESSION['supervisorid']) {
             })
             .catch(error => console.error('Error fetching data:', error));
 
+
+        // Doughnut Chart
         fetch('action/dough.php')
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
-                return response.json(); // or response.text() depending on your API response type
+                return response.json();
             })
             .then(data => {
                 const labels = ['Last Month', 'Current Month'];
@@ -371,12 +383,16 @@ if (!$_SESSION['supervisorid']) {
                             label: labels,
                             data: chartData,
                             backgroundColor: [
-                                '#2563eb',
-                                '#e11d48',
-                                '#9333ea',
+                                'rgba(106, 141, 245, 0.5)', // Transparent blue
+                                'rgba(242, 143, 155, 0.5)', // Transparent pinkish-red
+                                'rgba(169, 107, 247, 0.5)', // Transparent purple
                             ],
-                            borderWidth: 5,
-                            borderColor: '#FFFFFF'
+                            borderWidth: 2,
+                            borderColor: [
+                                '#6a8df5',
+                                '#f28f9b',
+                                '#a96bf7'
+                            ],
                         }]
                     },
                     options: {
@@ -384,12 +400,11 @@ if (!$_SESSION['supervisorid']) {
                         animation: {
                             animateRotate: true,
                             onProgress: function(animation) {
-                                // Custom animation effect
                                 const chartInstance = animation.chart;
-                                chartInstance.options.rotation += 0.01; // Adjust speed as needed
+                                chartInstance.options.rotation += 0.01;
                             },
-                            duration: 2000, // Animation duration
-                            easing: 'easeInOutQuad' // Easing function
+                            duration: 2000,
+                            easing: 'easeInOutQuad'
                         },
                         responsive: true,
                         plugins: {
@@ -398,21 +413,21 @@ if (!$_SESSION['supervisorid']) {
                                 position: 'bottom'
                             },
                         }
-
                     }
                 });
             })
             .catch(error => {
                 console.error('Error fetching data:', error);
-                console.error('Error fetching data:', data);
             });
 
+
+        // Polar Area Chart
         fetch('action/polar.php')
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
-                return response.json(); // or response.text() depending on your API response type
+                return response.json();
             })
             .then(data => {
                 const labels = ['Last Month', 'Current Month'];
@@ -429,26 +444,30 @@ if (!$_SESSION['supervisorid']) {
                             label: labels,
                             data: chartData,
                             backgroundColor: [
-                                '#e11d48',
-                                '#16a34a',
-                                '#2563eb',
-                                '#9333ea',
+                                'rgba(242, 143, 155, 0.5)', // Transparent pinkish-red
+                                'rgba(98, 216, 140, 0.5)', // Transparent green
+                                'rgba(106, 141, 245, 0.5)', // Transparent blue
+                                'rgba(169, 107, 247, 0.5)', // Transparent purple
                             ],
                             borderWidth: 2,
-                            borderColor: '#FFFFFF'
+                            borderColor: [
+                                '#f28f9b',
+                                '#6a8df5',
+                                '#62d88c',
+                                '#a96bf7'
+                            ],
                         }]
                     },
                     options: {
-                        rotation: Math.PI, // Start from the left side
+                        rotation: Math.PI,
                         animation: {
                             animateRotate: true,
                             onProgress: function(animation) {
-                                // Custom animation effect
                                 const chartInstance = animation.chart;
-                                chartInstance.options.rotation += 0.01; // Adjust speed as needed
+                                chartInstance.options.rotation += 0.01;
                             },
-                            duration: 2000, // Animation duration
-                            easing: 'easeInOutQuad' // Easing function
+                            duration: 2000,
+                            easing: 'easeInOutQuad'
                         },
                         responsive: true,
                         plugins: {
@@ -457,42 +476,29 @@ if (!$_SESSION['supervisorid']) {
                                 position: 'bottom'
                             },
                         }
-
                     }
                 });
             })
             .catch(error => {
                 console.error('Error fetching data:', error);
-                console.error('Error fetching data:', data);
             });
+
 
         var labelsIP = <?php echo json_encode($labelsIp); ?>;
         var dataIP = <?php echo json_encode($dataIp); ?>;
 
         var colors = [];
         for (var i = 0; i < dataIP.length; i++) {
-            colors.push(i % 2 === 0 ? '#2563eb' : '#e11d48');
+            colors.push(i % 2 === 0 ? 'rgba(106, 141, 245, 0.5)' : 'rgba(242, 143, 155, 0.5)');
+        }
+
+        var border = [];
+        for (var i = 0; i < dataIP.length; i++) {
+            border.push(i % 2 === 0 ? '#6a8df5' : '#f28f9b');
         }
 
         new Chart(ctx, {
             type: 'bar',
-            options: {
-                animations: {
-                    tension: {
-                        duration: 1000,
-                        easing: 'linear',
-                        from: 1,
-                        to: 0,
-                        loop: true
-                    }
-                },
-                scales: {
-                    y: { // defining min and max so hiding the dataset does not change scale range
-                        min: 0,
-                        max: 100
-                    }
-                }
-            },
             data: {
                 labels: labelsIP,
                 datasets: [{
@@ -500,6 +506,9 @@ if (!$_SESSION['supervisorid']) {
                     data: dataIP,
                     barThickness: 40,
                     backgroundColor: colors,
+                    borderColor: border,
+                    borderWidth: 2, // Border color and width
+                    borderRadius: 5, // Rounded corners for bars
                 }]
             },
             options: {

@@ -12,3 +12,13 @@ function create_random_string($length)
 
     return $randomString;
 }
+
+function showToastr($message, $type)
+{
+    echo '<script>
+        var alertMessage = "' . addslashes($message) . '";
+        if (alertMessage) {
+                toastr.' . $type . '(alertMessage);
+        }
+    </script>';
+}

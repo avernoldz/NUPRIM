@@ -7,6 +7,7 @@ if (isset($_POST['table'])) {
     $field = $_POST['field'];
     $content = $_POST['content'];
     $table = $_POST['table'];
+    $s = isset($_POST['supervisor']);
 
     // Function to check and convert date
     function convertToDate($dateString)
@@ -57,6 +58,30 @@ if (isset($_POST['table'])) {
         $stmt->close();
     } else {
         echo "Error retrieving primary key: " . $conn->error;
+    }
+
+    $conn->close();
+}
+
+if (isset($_POST['supervisor'])) {
+    $id = $_POST['id'];
+    $field = $_POST['field'];
+    $content = $_POST['content'];
+    $table = $_POST['tables'];
+    $s = isset($_POST['supervisor']);
+
+    if ($s) {
+        // Prepare the SQL statement
+        $stmt = $conn->prepare("UPDATE `$table` SET $field = ? WHERE userid = ?");
+
+        $stmt->bind_param("si", $content, $id);
+        if ($stmt->execute()) {
+            echo "Content updated successfully.";
+        } else {
+            echo "Error updating content: " . $stmt->error;
+        }
+
+        $stmt->close();
     }
 
     $conn->close();

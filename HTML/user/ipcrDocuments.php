@@ -56,7 +56,7 @@ include_once "components/index.php";
     <div class="main">
         <div class="row bg">
             <div class="col">
-                <h1>IPCR /&nbsp;&nbsp;<span class="text-[#737373]">Accomplishments</span></h1>
+                <h1>NUPRIM /&nbsp;&nbsp;<span class="text-[#737373]">Accomplishments</span></h1>
             </div>
         </div>
 
@@ -72,7 +72,7 @@ include_once "components/index.php";
             <div class="row bg column-gap-3 items-end">
                 <ul role="list" class="divide-y divide-gray-100 rounded-md border border-gray-200">
                     <?php
-                    $query2 = "SELECT ipcrdoc.*, ipcr.year, ipcr.semester FROM ipcrdoc INNER JOIN ipcr ON ipcr.ipcrid = ipcrdoc.ipcrid WHERE ipcrdoc.userid = '$userid'";
+                    $query2 = "SELECT ipcrdoc.*, ipcr.year, ipcr.semester FROM ipcrdoc INNER JOIN ipcr ON ipcr.ipcrid = ipcrdoc.ipcrid WHERE ipcrdoc.userid = '$userid' ORDER BY ipcrdoc.ipcrid DESC";
                     $results2 = mysqli_query($conn, $query2);
                     $dirName = selectName($conn, $userid);
 
@@ -103,7 +103,13 @@ include_once "components/index.php";
                     <?php
                         }
                     } else {
-                        echo "<p class='text-center'>No data</p>";
+                        echo "<li class='flex items-center justify-between py-4 pl-4 pr-5 text-sm leading-6'>
+                                    <div class='flex w-0 flex-1 items-center'>
+                                        <div class='ml-4 flex min-w-0 flex-1 gap-2 justify-content-center'>
+                                            <span class='truncate font-medium'>No uploaded documents</span>
+                                        </div>
+                                    </div>
+                                </li>";
                     }
                     ?>
                 </ul>
@@ -119,12 +125,11 @@ include_once "components/index.php";
                             </div>
                             <div class="modal-body">
                                 <div class="row column-gap-3">
-
                                     <div class="col">
                                         <label for="ipcrid" class="form-label">IPCR</label>
-                                        <select id="ipcrid" class="form-control" name="ipcrid" required>
+                                        <select id="ipcrid" class="form-control" name="ipcrid" required onchange="fetchFunctions()">
                                             <?php
-                                            $ipcr = "SELECT ipcrid, year, semester FROM ipcr WHERE userid = '$userid'";
+                                            $ipcr = "SELECT ipcrid, year, semester FROM ipcr WHERE userid = '$userid' ORDER BY ipcrid DESC";
                                             $ress = mysqli_query($conn, $ipcr);
                                             if (mysqli_num_rows($ress) > 0) {
                                                 while ($ip = mysqli_fetch_array($ress)) {
@@ -139,9 +144,17 @@ include_once "components/index.php";
                                     </div>
 
                                     <div class="w-100"></div>
+                                    <div class="col mt-3">
+                                        <label for="function" class="form-label">Functions</label>
+                                        <select id="function" class="form-control" name="function" required>
+                                            <option selected disabled>Select function</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="w-100"></div>
 
                                     <div class="col-6 mt-3">
-                                        <label for="dateSubmission" class="form-label">Date of Submission</label>
+                                        <label for="dateSubmission" class="form-label">Target Date</label>
                                         <input type="date" id="dateSubmission" class="form-control" name="dateSubmission" required>
                                     </div>
 
@@ -172,6 +185,27 @@ include_once "components/index.php";
 
         </div>
         <script src="../JS/app.js"></script>
+        <script>
+            function fetchFunctions() {
+                var ipcrId = $('#ipcrid').val(); // Get selected IPCR ID
+
+                $.ajax({
+                    url: 'action/fetch.php', // The PHP file that handles the request
+                    type: 'POST',
+                    data: {
+                        ipcrid: ipcrId
+                    },
+                    success: function(response) {
+                        $('#function').html(response);
+                    },
+                    error: function() {
+                        alert('Error retrieving functions. Please try again.');
+                    }
+                });
+            }
+
+            fetchFunctions();
+        </script>
 </body>
 
 </html>

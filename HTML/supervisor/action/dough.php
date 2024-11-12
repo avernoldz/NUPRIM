@@ -20,13 +20,15 @@ function getTotalAbsencesLastMonth($conn, $tableName, $startLastMonth, $endLastM
               INNER JOIN account ON `$tableName`.userid = account.userid
               INNER JOIN plantilla ON plantilla.itemNumber = account.itemNumber
               WHERE status = 'Approve' 
-              AND dateStart BETWEEN ? AND ? 
-              AND plantilla.station = ?";
+              AND dateStart BETWEEN ? AND ?";
 
+    if ($station !== 'PHQ') {
+        $query .= " AND plantilla.station = '$station'";
+    }
     $stmt = $conn->prepare($query);
     $total = 0;
     if ($stmt) {
-        $stmt->bind_param("sss", $startLastMonth, $endLastMonth, $station);
+        $stmt->bind_param("ss", $startLastMonth, $endLastMonth);
         $stmt->execute();
         $stmt->bind_result($total);
         if ($stmt->fetch()) {
@@ -64,8 +66,13 @@ function getWeeklyApprovedLeaves($conn, $startDate, $endDate, $station)
                     WHERE status = 'Approve' 
                     AND dateStart 
                     BETWEEN '$weekStart' AND '$weekEnd'
-                    AND plantilla.station = '$station'";
+                    ";
         $result = mysqli_query($conn, $query);
+
+        if ($station !== 'PHQ') {
+            $result .= " AND plantilla.station = '$station'";
+        }
+
         $data = mysqli_fetch_assoc($result);
 
         $weeklyCounts[] = $data['totalApproved'];

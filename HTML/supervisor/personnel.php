@@ -1,4 +1,7 @@
 <?php
+
+use Infobip\Model\EmailLog;
+
 session_start();
 session_regenerate_id();
 
@@ -37,12 +40,13 @@ include_once "components/index.php";
     $query1 = "SELECT station FROM account INNER JOIN plantilla ON account.itemNumber = plantilla.itemNumber WHERE userid = '$supervisorid'";
     $results1 = mysqli_query($conn, $query1);
     $row1 = mysqli_fetch_array($results1);
+
     $station = $row1['station'];
     ?>
     <div class="main ">
         <div class="row bg">
             <div class="col">
-                <h1>IPCR /&nbsp;&nbsp;<span class="text-[#737373]">Personnel</span></h1>
+                <h1>NUPRIM /&nbsp;&nbsp;<span class="text-[#737373]">Personnel</span></h1>
             </div>
         </div>
 
@@ -62,16 +66,25 @@ include_once "components/index.php";
                     <?php
                     $query1 = "SELECT * 
                     FROM user
-                    INNER JOIN account ON user.userid = account.userid
+                    RIGHT JOIN account ON user.userid = account.userid
                     INNER JOIN plantilla ON plantilla.itemNumber = account.itemNumber
-                    WHERE plantilla.station = '$station' AND account.isArchive = TRUE";
+                    WHERE account.isArchive = TRUE 
+                    AND account.type = 'User'";
+
+                    if ($station !== 'PHQ') {
+                        $query1 .= " AND plantilla.station = '$station'";
+                    }
                     $results1 = mysqli_query($conn, $query1);
 
                     if (mysqli_num_rows($results1) > 0) {
                         while ($rows = mysqli_fetch_array($results1)) {
                             $middle = substr($rows['middlename'], 0, 1);
+
+                            $leave = "SELECT userid FROM leaves WHERE userid = '$rows[userid]'";
+                            $lres = mysqli_query($conn, $leave);
+                            $lrow = mysqli_fetch_array($lres);
                     ?>
-                            <tr>
+                            <tr class="<?php if (!empty($lrow)) echo "!bg-yellow-100" ?>">
                                 <td class="border-0"><?php echo "$rows[userid]" ?></td>
                                 <td class="border-0"><?php echo "$rows[firstname]";
                                                         if (empty($rows['middlename'])) {
