@@ -173,7 +173,7 @@ include_once "components/index.php";
             </div>
             <div>
                 <p class="w-700">Approved by:</p>
-                <p class="mt-4 underline underline-offset-2 rater" contenteditable="true"><?php echo $assessed['a_name']; ?></p>
+                <p class="mt-4 underline underline-offset-2 rater" contenteditable="true"><?php echo $assessed['s_name']; ?></p>
                 <p>Rater/Immediate Supervisor</p>
             </div>
             <div>
@@ -286,7 +286,7 @@ include_once "components/index.php";
                     <div class="grid grid-cols-2 p-1">
                         <div class="mt-40">
                             <p>Approved by:</p>
-                            <p class="mt-5 underline underline-offset-2 rater" contenteditable="true"><?php echo $supervisor ?></p>
+                            <p class="mt-5 underline underline-offset-2 rater" contenteditable="true"><?php echo $assessed['s_name']; ?></p>
                             <p>Rater/Immediate Supervisor</p>
                         </div>
                         <div class="mt-40">
@@ -327,8 +327,8 @@ include_once "components/index.php";
                         <p class="text-center align-middle pb-2"> </p>
                     </div>
                     <div class="relative mt-5 p-4">
-                        <p class="text-center underline underline-offset-4 pmt-head" contenteditable="true">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
-                        <p class="text-center pmt-pos" contenteditable="true"></p>
+                        <p class="text-center underline underline-offset-4 pmt-head" contenteditable="true"><?php echo $assessed['p_name']; ?></p>
+                        <p class="text-center pmt-pos" contenteditable="true"><?php echo $assessed['p_rank']; ?></p>
                         <p class="text-center">PMT Head</p>
                     </div>
                 </div>

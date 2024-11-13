@@ -238,11 +238,10 @@ include_once "../user/components/index.php";
                                 $functionid = strtoupper(substr($item['core'], 0, 1));
                                 $doc = getIpcrDoc($conn, $ipcr, $functionid);
                                 $doc['filePath'] = "http://localhost/IPCR/HTML/user/uploads/" . $dirName . "/";
+                                // print_r($doc);
                                 ?>
-                                <?php if (!empty($doc)): ?>
-                                    <!-- <a href="../user/uploads/<?php echo $dirName . "/$doc[uploadedDoc]" ?>" target="_blank"> -->
+                                <?php if (isset($doc[0])): ?>
                                     <i class="fa-solid fa-eye fa-fw text-[#7b8087] absolute right-[-20px] top-[45%] z-50 cursor-pointer" data-doc='<?php echo json_encode($doc); ?>'></i>
-                                    <!-- </a> -->
                                 <?php endif; ?>
                             </td>
                         </tr>
@@ -283,11 +282,12 @@ include_once "../user/components/index.php";
                                 $functionid = strtoupper(substr($item['support'], 0, 1));
                                 $doc = getIpcrDoc($conn, $ipcr, $functionid);
                                 $doc['filePath'] = "http://localhost/IPCR/HTML/user/uploads/" . $dirName . "/";
+                                // print_r($doc);
                                 ?>
-                                <?php if (!empty($doc['uploadedDoc'])): ?>
-                                    <a href="../user/uploads/<?php echo $dirName . "/$doc[uploadedDoc]" ?>" target="_blank">
-                                        <i class="fa-solid fa-eye fa-fw text-[#7b8087] absolute right-[-20px] top-[45%] z-50 cursor-pointer" data-doc='<?php echo json_encode($doc); ?>'></i>
-                                    </a>
+                                <?php if (isset($doc[0])): ?>
+                                    <!-- <a href="../user/uploads/<?php echo $dirName . "/$doc[uploadedDoc]" ?>" target="_blank"> -->
+                                    <i class="fa-solid fa-eye fa-fw text-[#7b8087] absolute right-[-20px] top-[45%] z-50 cursor-pointer" data-doc='<?php echo json_encode($doc); ?>'></i>
+                                    <!-- </a> -->
                                 <?php endif; ?>
                             </td>
                         </tr>
