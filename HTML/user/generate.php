@@ -98,7 +98,9 @@ include_once "components/index.php";
 </head>
 
 <body>
-
+    <div class="loader loading hidden">
+        <div class="justify-content-center jimu-primary-loading"></div>
+    </div>
     <?php
     $userid = $_SESSION['userid'];
     include "../../Connections/Include.php";
@@ -173,7 +175,7 @@ include_once "components/index.php";
             </div>
             <div>
                 <p class="w-700">Approved by:</p>
-                <p class="mt-4 underline underline-offset-2 rater" contenteditable="true"><?php echo $assessed['a_name']; ?></p>
+                <p class="mt-4 underline underline-offset-2 rater" contenteditable="true"><?php echo $assessed['s_name']; ?></p>
                 <p>Rater/Immediate Supervisor</p>
             </div>
             <div>
@@ -217,9 +219,9 @@ include_once "components/index.php";
                         <td class="acc-q" contenteditable="true" data-column="acc-q">weekly report prepared accepted/approved on 2nd submission with minimal errors</td>
                         <td class="acc-t" contenteditable="true" data-column="acc-t">one day before TD</td>
                         <td class="acc-e" contenteditable="true" data-column="acc-e">1 per week</td>
-                        <td class="ratings-q" data-column="ratings-q"></td>
-                        <td class="ratings-t" data-column="ratings-t"></td>
-                        <td class="ratings-e" data-column="ratings-e"></td>
+                        <td class="ratings-q" contenteditable="true" data-column="ratings-q"></td>
+                        <td class="ratings-t" contenteditable="true" data-column="ratings-t"></td>
+                        <td class="ratings-e" contenteditable="true" data-column="ratings-e"></td>
                         <td class="w-700 avg-row"></td>
                     </tr>
 
@@ -248,9 +250,9 @@ include_once "components/index.php";
                         <td class="acc-q" contenteditable="true" data-column="acc-q">weekly report prepared accepted/approved on 2nd submission with minimal errors</td>
                         <td class="acc-t" contenteditable="true" data-column="acc-t">one day before TD</td>
                         <td class="acc-e" contenteditable="true" data-column="acc-e">1 per week</td>
-                        <td class="ratings-q" data-column="ratings-q"></td>
-                        <td class="ratings-t" data-column="ratings-t"></td>
-                        <td class="ratings-e" data-column="ratings-e"></td>
+                        <td class="ratings-q" contenteditable="true" data-column="ratings-q"></td>
+                        <td class="ratings-t" contenteditable="true" data-column="ratings-t"></td>
+                        <td class="ratings-e" contenteditable="true" data-column="ratings-e"></td>
                         <td class="w-700 avg-row"></td>
                     </tr>
 
@@ -286,7 +288,7 @@ include_once "components/index.php";
                     <div class="grid grid-cols-2 p-1">
                         <div class="mt-40">
                             <p>Approved by:</p>
-                            <p class="mt-5 underline underline-offset-2 rater" contenteditable="true"><?php echo $supervisor ?></p>
+                            <p class="mt-5 underline underline-offset-2 rater" contenteditable="true"><?php echo $assessed['s_name']; ?></p>
                             <p>Rater/Immediate Supervisor</p>
                         </div>
                         <div class="mt-40">
@@ -327,8 +329,8 @@ include_once "components/index.php";
                         <p class="text-center align-middle pb-2"> </p>
                     </div>
                     <div class="relative mt-5 p-4">
-                        <p class="text-center underline underline-offset-4 pmt-head" contenteditable="true">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
-                        <p class="text-center pmt-pos" contenteditable="true"></p>
+                        <p class="text-center underline underline-offset-4 pmt-head" contenteditable="true"><?php echo $assessed['p_name']; ?></p>
+                        <p class="text-center pmt-pos" contenteditable="true"><?php echo $assessed['p_rank']; ?></p>
                         <p class="text-center">PMT Head</p>
                     </div>
                 </div>
@@ -603,6 +605,124 @@ include_once "components/index.php";
             $('#remove-support').click(function(e) {
                 e.preventDefault(); // Prevent default anchor behavior
                 removeRow('support'); // Call the function for support
+            });
+
+            function calculateRowAverages() {
+                $('tr.core, tr.support').each(function() {
+                    const $row = $(this);
+
+                    // Get the values from the rating cells
+                    const ratingQ = parseFloat($row.find('.ratings-q').text()) || 0;
+                    const ratingT = parseFloat($row.find('.ratings-t').text()) || 0;
+                    const ratingE = parseFloat($row.find('.ratings-e').text()) || 0;
+
+                    // Calculate the average
+                    const average = (ratingQ + ratingT + ratingE) / 3;
+
+                    // Update the avg-row cell
+                    $row.find('.avg-row').text(average.toFixed(2)); // Show 2 decimal places
+                    calculateOverallAverage();
+                });
+            }
+
+            calculateRowAverages();
+
+            function calculateOverallAverage() {
+                let totals = {
+                    core: {
+                        total: 0,
+                        count: 0
+                    },
+                    support: {
+                        total: 0,
+                        count: 0
+                    }
+                };
+
+                // Calculate totals and counts for both core and support rows
+                $('tr.core .avg-row, tr.support .avg-row').each(function() {
+                    const value = parseFloat($(this).text());
+                    if (!isNaN(value)) {
+                        const isCore = $(this).closest('tr').hasClass('core');
+                        totals[isCore ? 'core' : 'support'].total += value;
+                        totals[isCore ? 'core' : 'support'].count++;
+                    }
+                });
+
+                // Calculate averages and their respective percentages
+                const coreAverage = totals.core.count > 0 ? (totals.core.total / totals.core.count).toFixed(2) : '0.00';
+                const supportAverage = totals.support.count > 0 ? (totals.support.total / totals.support.count).toFixed(2) : '0.00';
+                const times70 = (coreAverage > 0 ? (coreAverage * 0.70).toFixed(2) : '0.00');
+                const times30 = (supportAverage > 0 ? (supportAverage * 0.30).toFixed(2) : '0.00');
+                const totalAvg = (parseFloat(times70) + parseFloat(times30)).toFixed(2);
+                // Display results
+                $('.sum-avg-row').text(coreAverage);
+                $('.sum-70').text(times70);
+                $('.sum-avg-row-30').text(supportAverage);
+                $('.sum-30').text(times30);
+                $('.final-avg').text(totalAvg);
+
+                if (totalAvg >= 4.500 && totalAvg <= 5.000) {
+                    rating = "(OS)";
+                } else if (totalAvg >= 3.500 && totalAvg <= 4.499) {
+                    rating = "(VS)";
+                } else if (totalAvg >= 2.500 && totalAvg <= 3.499) {
+                    rating = "(S)";
+                } else if (totalAvg >= 1.500 && totalAvg <= 2.499) {
+                    rating = "(US)";
+                } else if (totalAvg < 1.49) {
+                    rating = "(Poor)";
+                }
+
+
+                $('.vs-rating').text(rating);
+            }
+
+            function calculateTotalOverallAverage() {
+                let totalQ = 0,
+                    totalT = 0,
+                    totalE = 0;
+                let count = 0;
+
+                $('tr.core, tr.support').each(function() {
+                    const ratingQ = parseFloat($(this).find('.ratings-q').text()) || 0;
+                    const ratingT = parseFloat($(this).find('.ratings-t').text()) || 0;
+                    const ratingE = parseFloat($(this).find('.ratings-e').text()) || 0;
+
+                    totalQ += ratingQ;
+                    totalT += ratingT;
+                    totalE += ratingE;
+                    count++;
+                });
+
+                // Calculate overall averages
+                const overallAverageQ = count > 0 ? (totalQ / count).toFixed(2) : '0.00';
+                const overallAverageT = count > 0 ? (totalT / count).toFixed(2) : '0.00';
+                const overallAverageE = count > 0 ? (totalE / count).toFixed(2) : '0.00';
+
+                // Display results
+                $('.overall-average-q').text(overallAverageQ);
+                $('.overall-average-t').text(overallAverageT);
+                $('.overall-average-e').text(overallAverageE);
+            }
+
+            calculateTotalOverallAverage();
+
+            $(document).on('input', '.ratings-q, .ratings-t, .ratings-e', function() {
+                const $row = $(this).closest('tr');
+
+                // Get the values from the rating cells
+                const ratingQ = parseFloat($row.find('.ratings-q').text()) || 0;
+                const ratingT = parseFloat($row.find('.ratings-t').text()) || 0;
+                const ratingE = parseFloat($row.find('.ratings-e').text()) || 0;
+
+                // Calculate the average
+                const average = (ratingQ + ratingT + ratingE) / 3;
+
+                // Update the avg-row cell
+                $row.find('.avg-row').text(average.toFixed(2)); // Show 2 decimal places
+                calculateOverallAverage();
+                calculateTotalOverallAverage();
             });
         })
     </script>

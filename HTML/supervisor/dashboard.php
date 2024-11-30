@@ -157,6 +157,11 @@ if (!$_SESSION['supervisorid']) {
     }
 
     ?>
+
+    <div class="loader loading hidden">
+        <div class="justify-content-center jimu-primary-loading"></div>
+    </div>
+
     <div class="main">
         <div class="row bg">
             <div class="col">

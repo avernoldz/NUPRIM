@@ -145,6 +145,24 @@ function getOffice($conn, $id)
     return $row['station'];
 }
 
+
+function getAllPlantilla($conn)
+{
+    $query = "SELECT * FROM plantilla";
+    $res = mysqli_query($conn, $query);
+
+    // Initialize an empty array to store the rows
+    $plantilla = [];
+
+    // Fetch all rows from the result set and store them in the array
+    while ($row = mysqli_fetch_assoc($res)) {
+        $plantilla[] = $row; // Add each row to the plantilla array
+    }
+
+    // Return the array of rows
+    return $plantilla;
+}
+
 function getFullName($conn, $userid)
 {
     // Prepare the SQL query using a prepared statement
@@ -1816,4 +1834,33 @@ function getPhonenumbers($conn, $station)
     $stmt->close();
 
     return ['phonenumbers' => $phonenumbers, 'names' => $names];
+}
+
+function getAllEmail($conn, $station)
+{
+    $query = "SELECT email, firstname, lastname
+              FROM account
+              INNER JOIN plantilla ON account.itemNumber = plantilla.itemNumber
+              INNER JOIN user ON account.userid = user.userid
+              WHERE isArchive = TRUE AND account.type = 'User'";
+
+    if ($station !== 'PHQ') {
+        $query .= " AND plantilla.station = '$station'";
+    }
+
+    $stmt = $conn->prepare($query);
+    $stmt->execute();
+
+    $result = $stmt->get_result(); // Get the result set
+
+    $email = []; // Initialize an array for phone numbers
+    $names = [];
+    while ($row = $result->fetch_assoc()) {
+        $email[] = $row['email']; // Store each phone number as a string
+        $names[] = $row['firstname'] . " " . $row['lastname']; // Store name
+    }
+
+    $stmt->close();
+
+    return ['email' => $email, 'names' => $names];
 }

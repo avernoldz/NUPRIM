@@ -29,7 +29,9 @@ if (!isset($_SESSION['adminid'])) {
 </head>
 
 <body>
-
+    <div class="loader loading hidden">
+        <div class="justify-content-center jimu-primary-loading"></div>
+    </div>
     <?php
     $adminid = $_SESSION['adminid'];
     $active = "Supervisors";
@@ -58,6 +60,92 @@ if (!isset($_SESSION['adminid'])) {
         $alertType = $_GET['alert'];
         $alertMessage = urldecode($_GET['message']);
         showToastr($alertMessage, $alertType);
+    }
+
+    $opt = ['cost' => 12];
+    if (isset($_POST['save'])) {
+        $username = $conn->real_escape_string($_POST['username']);
+        $item = $conn->real_escape_string($_POST['item']);
+        $type = 'Supervisor'; // This is a static value and doesn't need escaping
+        $email = $conn->real_escape_string($_POST['email']);
+        $password = $conn->real_escape_string($_POST['password']);
+        $firstname = $conn->real_escape_string($_POST['firstname']);
+        $chief = $conn->real_escape_string($_POST['chief']);
+        $lastname = $conn->real_escape_string($_POST['lastname']);
+        $isArchive = TRUE;
+
+        // Check if the supervisor already exists
+        $check_query = "SELECT * FROM account WHERE (username='$username' OR itemNumber='$item' OR email='$email')";
+        $check_result = mysqli_query($conn, $check_query);
+
+        if (mysqli_num_rows($check_result) > 0) {
+            // Supervisor already exists
+            echo "<script>window.location.href='supervisor.php?alert=error&message=Username or email alreay taken';</script>";
+            exit();
+        }
+
+        $hash_pass = password_hash($password, PASSWORD_BCRYPT, $opt);
+
+        $insert = "INSERT INTO account(username, itemNumber, type, email, password, isArchive)
+                        VALUES('$username','$item','$type','$email','$hash_pass', '$isArchive')";
+
+        if (mysqli_query($conn, $insert)) {
+            $id = mysqli_insert_id($conn);
+
+            $insert2 = "INSERT INTO supervisor(firstname, lastname, userid)
+                        VALUES('$firstname','$lastname','$id')";
+
+            $insert3 = "INSERT INTO `service`(userid)
+                        VALUES('$id')";
+
+            $insert4 = "INSERT INTO `assessed`(userid)
+                        VALUES('$id')";
+            mysqli_query($conn, $insert3);
+            mysqli_query($conn, $insert4);
+
+            if (mysqli_query($conn, $insert2)) {
+                echo "<script>window.location.href='supervisor.php?alert=success&message=Supervisor Account addedd successfully';</script>";
+                exit();
+            } else {
+                echo "<script>window.location.href='supervisor.php?alert=error&message=Error creating supervisor account';</script>";
+            }
+        } else {
+            echo mysqli_error($conn);
+        }
+    }
+
+    if (isset($_POST['edit-supervisor'])) {
+        $username = $conn->real_escape_string($_POST['username']);
+        $item = $conn->real_escape_string($_POST['item']);
+        $email = $conn->real_escape_string($_POST['email']);
+        $firstname = $conn->real_escape_string($_POST['firstname']);
+        $lastname = $conn->real_escape_string($_POST['lastname']);
+        $userid = $conn->real_escape_string($_POST['userid']);
+        // Check if the supervisor already exists
+        $check_query = "SELECT * FROM account WHERE username='$username'";
+        $check_result = mysqli_query($conn, $check_query);
+
+        if (mysqli_num_rows($check_result) > 0) {
+            // Supervisor already exists
+            echo "<script>window.location.href='supervisor.php?alert=error&message=Username or email alreay taken';</script>";
+            exit();
+        }
+
+        $update = "UPDATE supervisor SET firstname = '$firstname', lastname = '$lastname' WHERE userid = '$userid'";
+        $update2 = "UPDATE account SET username = '$username', email = '$email', itemNumber = '$item' WHERE userid = '$userid'";
+
+        if (mysqli_query($conn, $update)) {
+            if (mysqli_query($conn, $update2)) {
+                echo "<script>window.location.href='supervisor.php?alert=success&message=Supervisor Account updating successfully';</script>";
+                // exit();
+            } else {
+                // echo mysqli_error($conn);
+                echo "<script>window.location.href='supervisor.php?alert=error&message=Error updating supervisor account';</script>";
+            }
+        } else {
+            // echo mysqli_error($conn);
+            echo "<script>window.location.href='supervisor.php?alert=error&message=Error updating supervisor account';</script>";
+        }
     }
 
     ?>
@@ -249,94 +337,6 @@ if (!isset($_SESSION['adminid'])) {
         </div>
     </form>
 
-    <?php
-    $options = ['cost' => 12];
-    if (isset($_POST['save'])) {
-        $username = $conn->real_escape_string($_POST['username']);
-        $item = $conn->real_escape_string($_POST['item']);
-        $type = 'Supervisor'; // This is a static value and doesn't need escaping
-        $email = $conn->real_escape_string($_POST['email']);
-        $password = $conn->real_escape_string($_POST['password']);
-        $firstname = $conn->real_escape_string($_POST['firstname']);
-        $chief = $conn->real_escape_string($_POST['chief']);
-        $lastname = $conn->real_escape_string($_POST['lastname']);
-        $isArchive = TRUE;
-
-        // Check if the supervisor already exists
-        $check_query = "SELECT * FROM account WHERE (username='$username' OR itemNumber='$item' OR email='$email')";
-        $check_result = mysqli_query($conn, $check_query);
-
-        if (mysqli_num_rows($check_result) > 0) {
-            // Supervisor already exists
-            echo "<script>window.location.href='supervisor.php?alert=error&message=Username or email alreay taken';</script>";
-            exit();
-        }
-
-        $hash_pass = password_hash($password, PASSWORD_BCRYPT, $options);
-
-        $insert = "INSERT INTO account(username, itemNumber, type, email, password, isArchive)
-                        VALUES('$username','$item','$type','$email','$hash_pass', '$isArchive')";
-
-        if (mysqli_query($conn, $insert)) {
-            $id = mysqli_insert_id($conn);
-
-            $insert2 = "INSERT INTO supervisor(firstname, lastname, userid)
-                        VALUES('$firstname','$lastname','$id')";
-
-            $insert3 = "INSERT INTO `service`(userid)
-                        VALUES('$id')";
-
-            $insert4 = "INSERT INTO `assessed`(userid)
-                        VALUES('$id')";
-            mysqli_query($conn, $insert3);
-            mysqli_query($conn, $insert4);
-
-            if (mysqli_query($conn, $insert2)) {
-                echo "<script>window.location.href='supervisor.php?alert=success&message=Supervisor Account addedd successfully';</script>";
-                exit();
-            } else {
-                echo "<script>window.location.href='supervisor.php?alert=error&message=Error creating supervisor account';</script>";
-            }
-        } else {
-            echo mysqli_error($conn);
-        }
-    }
-
-    if (isset($_POST['edit-supervisor'])) {
-        $username = $conn->real_escape_string($_POST['username']);
-        $item = $conn->real_escape_string($_POST['item']);
-        $email = $conn->real_escape_string($_POST['email']);
-        $firstname = $conn->real_escape_string($_POST['firstname']);
-        $lastname = $conn->real_escape_string($_POST['lastname']);
-        $chief = $conn->real_escape_string($_POST['chief']);
-        $userid = $conn->real_escape_string($_POST['userid']);
-        // Check if the supervisor already exists
-        $check_query = "SELECT * FROM account WHERE username='$username'";
-        $check_result = mysqli_query($conn, $check_query);
-
-        if (mysqli_num_rows($check_result) > 0) {
-            // Supervisor already exists
-            echo "<script>window.location.href='supervisor.php?alert=error&message=Username or email alreay taken';</script>";
-            exit();
-        }
-
-        $update = "UPDATE supervisor SET firstname = '$firstname', lastname = '$lastname' WHERE userid = '$userid'";
-        $update2 = "UPDATE account SET username = '$username', email = '$email', itemNumber = '$item' WHERE userid = '$userid'";
-
-        if (mysqli_query($conn, $update)) {
-            if (mysqli_query($conn, $update2)) {
-                echo "<script>window.location.href='supervisor.php?alert=success&message=Supervisor Account updating successfully';</script>";
-                // exit();
-            } else {
-                // echo mysqli_error($conn);
-                echo "<script>window.location.href='supervisor.php?alert=error&message=Error updating supervisor account';</script>";
-            }
-        } else {
-            // echo mysqli_error($conn);
-            echo "<script>window.location.href='supervisor.php?alert=error&message=Error updating supervisor account';</script>";
-        }
-    }
-    ?>
     <script src="../JS/app.js"></script>
     <script>
         $('#table').DataTable({

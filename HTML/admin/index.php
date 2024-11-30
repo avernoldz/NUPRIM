@@ -20,6 +20,9 @@ if (isset($_SESSION['adminid'])) {
 </head>
 
 <body>
+    <div class="loader loading hidden">
+        <div class="justify-content-center jimu-primary-loading"></div>
+    </div>
     <?php
     include "../../Connections/Include.php";
 

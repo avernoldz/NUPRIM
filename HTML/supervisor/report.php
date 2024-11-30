@@ -143,7 +143,12 @@ include_once "components/index.php";
     }
 
     ?>
+    <div class="loader loading hidden">
+        <div class="justify-content-center jimu-primary-loading"></div>
+    </div>
+
     <div class="main ">
+
         <div class="row bg">
             <div class="col">
                 <h1>NUPRIM /&nbsp;&nbsp;<span class="text-[#737373]">Reports </span></h1>
@@ -321,17 +326,15 @@ include_once "components/index.php";
 
             $('.nav-link').on('click', function(e) {
                 e.preventDefault();
+                $(".loading").removeClass('hidden').fadeIn(300);
                 handleNavClick($(this));
             });
 
             function handleNavClick(link) {
                 $('.nav-link').removeClass('!bg-[var(--blue-500)] active');
                 link.addClass('!bg-[var(--blue-500)] active');
-
                 const userId = link.data('userid');
                 const type = link.data('type');
-
-                $('.absolute').addClass('hidden');
 
                 $.ajax({
                     url: 'action/reportsData.php',

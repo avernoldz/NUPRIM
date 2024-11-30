@@ -20,6 +20,9 @@
 		a_name varchar(250) NOT NULL,
 		a_rank varchar(250) NOT NULL,
 		a_designation varchar(250) NOT NULL,
+		p_name varchar(250) NOT NULL,
+		p_rank varchar(250) NOT NULL,
+		p_designation varchar(250) NOT NULL,
 		userid INT NOT NULL
 		)";
 	if (mysqli_query($conn, $assessed)) {

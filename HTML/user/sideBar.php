@@ -13,7 +13,7 @@
                 <!-- <hr> -->
                 <ul>
                     <a
-                        href="dashboard.php?userid=<?php echo $userid ?>">
+                        href="dashboard.php?userid=<?php echo $userid ?>" class="href">
                         <li class="navi <?php if ($active == "Home") {
                                             echo "active";
                                         } ?>">
@@ -38,7 +38,7 @@
                                                 echo "hon";
                                             } ?>">
                         <a
-                            href="personalInformation.php?userid=<?php echo $userid ?>">
+                            href="personalInformation.php?userid=<?php echo $userid ?>" class="href">
                             <li class="navi <?php if ($active == "Personal Information") {
                                                 echo "active";
                                             } ?>">
@@ -46,7 +46,7 @@
                             </li>
                         </a>
                         <a
-                            href="address.php?userid=<?php echo $userid ?>">
+                            href="address.php?userid=<?php echo $userid ?>" class="href">
                             <li class="navi <?php if ($active == "Address") {
                                                 echo "active";
                                             } ?>">
@@ -54,7 +54,7 @@
                             </li>
                         </a>
                         <a
-                            href="family.php?userid=<?php echo $userid ?>">
+                            href="family.php?userid=<?php echo $userid ?>" class="href">
                             <li class="navi <?php if ($active == "Family") {
                                                 echo "active";
                                             } ?>">
@@ -62,7 +62,7 @@
                             </li>
                         </a>
                         <a
-                            href="education.php?userid=<?php echo $userid ?>">
+                            href="education.php?userid=<?php echo $userid ?>" class="href">
                             <li class="navi <?php if ($active == "Education") {
                                                 echo "active";
                                             } ?>">
@@ -70,7 +70,7 @@
                             </li>
                         </a>
                         <a
-                            href="eligibility.php?userid=<?php echo $userid ?>">
+                            href="eligibility.php?userid=<?php echo $userid ?>" class="href">
                             <li class="navi <?php if ($active == "Eligibility") {
                                                 echo "active";
                                             } ?>">
@@ -78,7 +78,7 @@
                             </li>
                         </a>
                         <a
-                            href="service.php?userid=<?php echo $userid ?>">
+                            href="service.php?userid=<?php echo $userid ?>" class="href">
                             <li class="navi <?php if ($active == "Service Record") {
                                                 echo "active";
                                             } ?>">
@@ -86,7 +86,7 @@
                             </li>
                         </a>
                         <a
-                            href="details.php?userid=<?php echo $userid ?>">
+                            href="details.php?userid=<?php echo $userid ?>" class="href">
                             <li class="navi <?php if ($active == "Detail Orders") {
                                                 echo "active";
                                             } ?>">
@@ -94,7 +94,7 @@
                             </li>
                         </a>
                         <a
-                            href="training.php?userid=<?php echo $userid ?>">
+                            href="training.php?userid=<?php echo $userid ?>" class="href">
                             <li class="navi <?php if ($active == "Training/Seminar") {
                                                 echo "active";
                                             } ?>">
@@ -102,7 +102,7 @@
                             </li>
                         </a>
                         <a
-                            href="leaves.php?userid=<?php echo $userid ?>">
+                            href="leaves.php?userid=<?php echo $userid ?>" class="href">
                             <li class="navi <?php if ($active == "Leave Records") {
                                                 echo "active";
                                             } ?>">
@@ -111,7 +111,7 @@
                         </a>
 
                         <a
-                            href="criminalCase.php?userid=<?php echo $userid ?>">
+                            href="criminalCase.php?userid=<?php echo $userid ?>" class="href">
                             <li class="navi <?php if ($active == "Criminal Case") {
                                                 echo "active";
                                             } ?>">
@@ -120,7 +120,7 @@
                         </a>
 
                         <a
-                            href="action/pds.php?userid=<?php echo $userid ?>">
+                            href="action/pds.php?userid=<?php echo $userid ?>" class="href">
                             <li class="navi <?php if ($active == "PDS") {
                                                 echo "active";
                                             } ?>">
@@ -131,7 +131,7 @@
                     </ul>
 
                     <a
-                        href="myDocuments.php?userid=<?php echo $userid ?>">
+                        href="myDocuments.php?userid=<?php echo $userid ?>" class="href">
                         <li class="navi <?php if ($active == "My Documents") {
                                             echo "active";
                                         } ?>">
@@ -159,7 +159,7 @@
                                                 echo "hidden";
                                             } ?>">
                         <a
-                            href="ipcr.php?userid=<?php echo $userid ?>">
+                            href="ipcr.php?userid=<?php echo $userid ?>" class="href">
                             <li class="navi <?php if ($active == "IPCR") {
                                                 echo "active";
                                             } ?>">
@@ -168,7 +168,7 @@
                         </a>
 
                         <a
-                            href="ipcrDocuments.php?userid=<?php echo $userid ?>">
+                            href="ipcrDocuments.php?userid=<?php echo $userid ?>" class="href">
                             <li class="navi <?php if ($active == "IPCR Docs") {
                                                 echo "active";
                                             } ?>">
@@ -178,7 +178,7 @@
                     </ul>
 
                     <a
-                        href="settings.php?userid=<?php echo $userid ?>">
+                        href="settings.php?userid=<?php echo $userid ?>" class="href">
                         <li class="navi <?php if ($active == "Settings") {
                                             echo "active";
                                         } ?>">
@@ -215,6 +215,33 @@
 
         $('#ipcr-drop').click(function() {
             $('.drop-ipcr').slideToggle("fast", "linear");
+        });
+
+        $(document).on('click', '.href', function(e) {
+            e.preventDefault(); // Prevent default link behavior (which would cause a reload)
+
+            // Show the loading spinner dynamically
+            $(".loader.loading").removeClass('hidden').fadeIn(300);
+
+            // Get the target URL of the clicked link
+            const targetUrl = $(this).attr('href');
+
+            // Simulate a brief delay (so the user sees the loader) before redirecting
+            setTimeout(function() {
+                window.location.href = targetUrl; // Redirect to the new page
+            }, 500); // You can adjust this delay (500ms is just an example)
+        });
+
+        // Optionally, show the loader when any AJAX request starts
+        $(document).ajaxStart(function() {
+            $(".loader.loading").removeClass('hidden').fadeIn(300); // Show loader on AJAX start
+        });
+
+        // Hide the loader when AJAX requests are completed
+        $(document).ajaxStop(function() {
+            $(".loader.loading").fadeOut(300, function() {
+                $(this).addClass('hidden'); // Hide the loader after AJAX is done
+            });
         });
 
     })

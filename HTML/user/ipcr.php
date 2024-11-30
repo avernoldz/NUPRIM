@@ -37,7 +37,9 @@ include_once "components/index.php";
 </head>
 
 <body>
-
+    <div class="loader loading hidden">
+        <div class="justify-content-center jimu-primary-loading"></div>
+    </div>
     <?php
     $userid = $_SESSION['userid'];
     $active = "IPCR";
@@ -92,9 +94,16 @@ include_once "components/index.php";
                                 <h2 class="font-bold ml-5">IPCR -
                                     <span class="font-normal"><?php echo emptyData("semester", $row2) . ' (' . emptyData("year", $row2) . ')' ?></span>
                                 </h2>
-                                <h2 class="font-bold">
-                                    <span class="font-normal">Rating - </span> <?php echo emptyData("finalRating", $row2) ?>
-                                </h2>
+                                <?php if ($row2['status'] == 'Approved'): ?>
+                                    <h2 class="font-bold">
+                                        <span class="font-normal">Rating - </span> <?php echo emptyData("finalRating", $row2) ?>
+                                    </h2>
+                                <?php endif; ?>
+                                <?php if ($row2['status'] == 'Rejected'): ?>
+                                    <h2 class="font-bold">
+                                        <span class="font-normal">Reason </span> <?php echo emptyData("rejectReason", $row2) ?>
+                                    </h2>
+                                <?php endif; ?>
                                 <div class="col-3 text-center">
                                     <span class="mr-5"><?php echo $stat; ?></span>
                                     <a href="viewipcr.php?ipcrid=<?php echo $row2["ipcrid"] ?>&userid=<?php echo $userid ?>&delete" class=" hover:bg-gray-300 hover:rounded-full p-2"><i class="fa-regular fa-eye fa-fw text-gray-600"></i></a>

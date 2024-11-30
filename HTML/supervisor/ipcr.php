@@ -43,7 +43,35 @@ include_once "components/index.php";
     $row1 = mysqli_fetch_array($results1);
     $station = $row1['station'];
 
+    $assessby = "SELECT * FROM assessed WHERE userid = '$supervisorid'";
+    $resassessby = mysqli_query($conn, $assessby);
+    $rowassessby = mysqli_fetch_array($resassessby);
+
+    $pos = [
+        "PGEN",
+        "PLTGEN",
+        "PMGEN",
+        "PBGEN",
+        "PCOL",
+        "PLTCOL",
+        "PMAJ",
+        "PCPT",
+        "PLT",
+        "PEMS",
+        "PCMS",
+        "PSMS",
+        "PMSg",
+        "PSSg",
+        "PCpl",
+        "Pat"
+    ];
+
     ?>
+
+    <div class="loader loading hidden">
+        <div class="justify-content-center jimu-primary-loading"></div>
+    </div>
+
     <div class="main ">
         <div class="row bg">
             <div class="col">
@@ -54,55 +82,103 @@ include_once "components/index.php";
         <div class="row bg column-gap-3 mt-3  text-[14px]">
             <div class="row flex justify-content-between">
                 <div class="col">
-                    <p class="font-semibold">Section Chief</p>
+                    <p class="font-semibold">Immediate Supervisor</p>
                     <div class="row">
-                        <table>
+                        <table class="w-100">
                             <tr>
                                 <td>
-                                    <p>Name: </p>
+                                    <p>Name </p>
                                 </td>
-                                <td> <span contenteditable="true" class="ml-3 content font-semibold" data-field="s_name" data-table="assessed">AVERNOLD M. EMOCLING</span></td>
+                                <td>: <span contenteditable="true" class="ml-3 content font-semibold" data-field="s_name" data-table="assessed"><?php echo emptyData("s_name", $rowassessby) ?></span></td>
                             </tr>
                             <tr>
                                 <td>
-                                    <p>Rank: </p>
+                                    <p>Rank </p>
                                 </td>
-                                <td> <span contenteditable="true" class="ml-3 content font-semibold" data-field="s_rank" data-table="assessed">SPO III</span></td>
+                                <td>:
+                                    <!-- <span contenteditable="true" class="ml-3 content font-semibold" data-field="s_rank" data-table="assessed">SPO III</span> -->
+                                    <select class="ml-3 font-semibold" data-field="s_rank" data-table="assessed" id="s_rank">
+                                        <option value="<?php echo emptyData("s_rank", $rowassessby) ?>"><?php echo emptyData("s_rank", $rowassessby) ?></option>
+                                        <?php foreach ($pos as $value): ?>
+                                            <option value="<?php echo $value ?>"><?php echo $value ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </td>
                             </tr>
                             <tr>
                                 <td>
-                                    <p>Designation: </p>
+                                    <p>Designation </p>
                                 </td>
-                                <td> <span contenteditable="true" class="ml-3 content font-semibold" data-field="s_designation" data-table="assessed">Chief</span></td>
+                                <td>: <span contenteditable="true" class="ml-3 content font-semibold" data-field="s_designation" data-table="assessed"><?php echo emptyData("s_designation", $rowassessby) ?></span></td>
                             </tr>
                         </table>
                     </div>
                 </div>
-                <div class="col flex items-end flex-column">
-
-                    <table>
+                <div class="col">
+                    <table class="w-100">
                         <tr>
                             <td>
-                                <p class="font-semibold">Head of Office</p>
+                                <p class="font-semibold">Head of Unit/Rater</p>
                             </td>
                         </tr>
                         <tr>
                             <td>
-                                <p>Name: </p>
+                                <p>Name </p>
                             </td>
-                            <td> <span contenteditable="true" class="ml-3 content font-semibold" data-field="a_name" data-table="assessed">AVERNOLD M. EMOCLING</span></td>
+                            <td>: <span contenteditable="true" class="ml-3 content font-semibold" data-field="a_name" data-table="assessed"><?php echo emptyData("a_name", $rowassessby) ?></span></td>
                         </tr>
                         <tr>
                             <td>
-                                <p>Rank: </p>
+                                <p>Rank </p>
                             </td>
-                            <td> <span contenteditable="true" class="ml-3 content font-semibold" data-field="a_rank" data-table="assessed">SPO III</span></td>
+                            <td>:
+                                <select class="ml-3 font-semibold" data-field="a_rank" data-table="assessed" id="a_rank">
+                                    <option value="<?php echo emptyData("a_rank", $rowassessby) ?>"><?php echo emptyData("a_rank", $rowassessby) ?></option>
+                                    <?php foreach ($pos as $value): ?>
+                                        <option value="<?php echo $value ?>"><?php echo $value ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </td>
                         </tr>
                         <tr>
                             <td>
-                                <p>Designation: </p>
+                                <p>Designation </p>
                             </td>
-                            <td> <span contenteditable="true" class="ml-3 content font-semibold" data-field="a_designation" data-table="assessed">Assessed By</span></td>
+                            <td>: <span contenteditable="true" class="ml-3 content font-semibold" data-field="a_designation" data-table="assessed"><?php echo emptyData("s_designation", $rowassessby) ?></span></td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col">
+                    <table class="w-100">
+                        <tr>
+                            <td>
+                                <p class="font-semibold">PMT Head</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>Name </p>
+                            </td>
+                            <td>: <span contenteditable="true" class="ml-3 content font-semibold" data-field="p_name" data-table="assessed"><?php echo emptyData("p_name", $rowassessby) ?></span></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>Rank </p>
+                            </td>
+                            <td>:
+                                <select class="ml-3 font-semibold" data-field="p_rank" data-table="assessed" id="p_rank">
+                                    <option value="<?php echo emptyData("p_rank", $rowassessby) ?>"><?php echo emptyData("p_rank", $rowassessby) ?></option>
+                                    <?php foreach ($pos as $value): ?>
+                                        <option value="<?php echo $value ?>"><?php echo $value ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>Designation </p>
+                            </td>
+                            <td>: <span contenteditable="true" class="ml-3 content font-semibold" data-field="p_designation" data-table="assessed"><?php echo emptyData("s_designation", $rowassessby) ?></span></td>
                         </tr>
                     </table>
                 </div>
@@ -202,17 +278,20 @@ include_once "components/index.php";
             });
         }
 
+        $('select').on('change', function(event) {
+            updateContent($(this));
+        });
 
         function updateContent(field) {
             var content;
 
             var content = field.html(); // Use .html() to get the content   
             // Determine if the field is a select or contenteditable
-            // if (field.is('select')) {
-            //     content = field.val(); // Get the selected value
-            // } else {
-            //     content = field.html(); // Use .html() to get the content
-            // }
+            if (field.is('select')) {
+                content = field.val(); // Get the selected value
+            } else {
+                content = field.html(); // Use .html() to get the content
+            }
 
             var fieldId = <?php echo $supervisorid ?>; // Use .data() to get the id
             var fieldName = field.data('field'); // Use .data() to get the field name

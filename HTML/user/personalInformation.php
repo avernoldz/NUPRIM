@@ -26,6 +26,9 @@ include_once "components/index.php";
 </head>
 
 <body>
+    <div class="loader loading hidden">
+        <div class="justify-content-center jimu-primary-loading"></div>
+    </div>
 
     <?php
     $userid = $_SESSION['userid'];
@@ -152,7 +155,6 @@ include_once "components/index.php";
     <script>
         $('#edit').click(function() {
             $("#forms :input").prop("disabled", false);
-            $("#forms #date-of-birth").prop("type", "date");
             $('#save-cancel').css("display", "block");
             $('#edit').css("display", "none");
         })
@@ -160,28 +162,11 @@ include_once "components/index.php";
         $('#cancel').click(function() {
             $("#forms :input").prop("disabled", true);
             $('#save-cancel').css("display", "none");
-            $("#forms #date-of-birth").prop("type", "text");
-            var dateOfBirth = '<?php echo emptyData("dateOfBirth", $row1) ?>';
-            var date = new Date(dateOfBirth);
-
-            // Format the date to 'yyyy-MM-dd'
-            var date = new Date(dateOfBirth);
-
-            // Check if the date is valid
-            if (!isNaN(date)) {
-                // Format the date to 'yyyy-MM-dd'
-                var formattedDate = date.getFullYear() + '-' +
-                    ('0' + (date.getMonth() + 1)).slice(-2) + '-' +
-                    ('0' + date.getDate()).slice(-2);
-
-                // Set the value in the input field
-                $("#forms #date-of-birth").val(formattedDate);
-            } else {
-                console.error("Invalid date format: " + dateOfBirth);
-            }
 
             $('#edit').css("display", "block");
         })
+
+        initializeFlatpickr("#date-of-birth");
     </script>
 </body>
 

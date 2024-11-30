@@ -29,6 +29,9 @@ include_once "components/index.php";
 
 <body>
 
+    <div class="loader loading hidden">
+        <div class="justify-content-center jimu-primary-loading"></div>
+    </div>
     <?php
     $userid = $_SESSION['userid'];
     $active = "Service Record";
@@ -57,10 +60,15 @@ include_once "components/index.php";
         <div class="row bg-[var(--blue-600)] p-[18px] !mt-[16px] text-[white] rounded-t-[4px] ">
             <div class="col flex flex-wrap justify-between items-center">
                 <h1>Service Record</h1>
+                <button class="btn btn-danger  text-[white] w-24" type="button" id="edit"><i class="fa-solid fa-pen fa-fw mr-1" aria-hidden="true"></i>Edit</button>
+                <div class="flex gap-x-[6px] flex-wrap justify-between items-center hidden" id="save-cancel">
+                    <button class="btn btn-success w-24" type="submit" id="save" name="submit" form="forms">Save</button>
+                    <button class="btn btn-danger w-24" type="button" id="cancel">Cancel</button>
+                </div>
             </div>
         </div>
 
-        <form action="action/address.php" method="POST" id="forms">
+        <form action="action/service.php" method="POST" id="forms">
             <div class="row bg column-gap-3">
                 <div class="col-6 mb-2">
                     <label for="entered" class="form-label">Date Entered Service</label>
@@ -104,6 +112,10 @@ include_once "components/index.php";
     </div>
     <script src="../JS/app.js"></script>
     <script>
+        initializeFlatpickr("#entered");
+        initializeFlatpickr("#permanency");
+        initializeFlatpickr("#lastPromotion");
+        initializeFlatpickr("#lastStepIncrement");
         $('#edit').click(function() {
             $("#forms .country, #forms input").prop("disabled", false);
             // $("#forms :input").prop("disabled", false);

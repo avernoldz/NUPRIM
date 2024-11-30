@@ -2,9 +2,22 @@
 session_start();
 session_regenerate_id();
 
-// if (isset($_SESSION['userid'])) {
-//     header("Location:dashboard.php?userid=$_SESSION[userid]");
-// }
+if (isset($_SESSION['supervisorid']) || isset($_SESSION['userid']) ||  isset($_SESSION['adminid'])) {
+
+    session_destroy();
+    unset($_SESSION['userid']);
+    unset($_SESSION['adminid']);
+    unset($_SESSION['supervisorid']);
+
+    header("Location:index.php");
+    exit();
+}
+
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
+
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -98,6 +111,21 @@ session_regenerate_id();
 
                     <form action="" method="POST" class="w-full flex flex-col flex-wrap content-center items-end ">
 
+
+                        <div class="div w-9/12 grid grid-cols-2 grid-rows-1 gap-4">
+                            <div class="mb-4 w-12/12">
+                                <label for="username" class="form-label">Firstname</label>
+                                <input type="text" class="form-control bg-[#ebebeb] p-[0.75rem] w-full"
+                                    placeholder="name_example" required name="firstname">
+                            </div>
+
+                            <div class="mb-4 w-12/12">
+                                <label for="username" class="form-label">Lastname </label>
+                                <input type="text" class="form-control bg-[#ebebeb] p-[0.75rem] w-full"
+                                    placeholder="name_example" required name="lastname">
+                            </div>
+                        </div>
+
                         <div class="mb-4 w-9/12">
                             <label for="username" class="form-label">Username</label>
                             <input type="text" class="form-control bg-[#ebebeb] p-[0.75rem] w-full"
@@ -189,6 +217,8 @@ session_regenerate_id();
     if (isset($_POST['sign-up'])) {
         $options = ['cost' => 12];
 
+        $firstname = mysqli_escape_string($conn, $_POST['firstname']);
+        $lastname = mysqli_escape_string($conn, $_POST['lastname']);
         $username = mysqli_escape_string($conn, $_POST['username']);
         $itemNumber = mysqli_escape_string($conn, $_POST['itemNumber']);
         $phonenumber = mysqli_escape_string($conn, $_POST['phonenumber']);
@@ -196,15 +226,33 @@ session_regenerate_id();
         $password = mysqli_escape_string($conn, $_POST['password']);
         $type = 'User';
 
-        $sql = "INSERT INTO account(username, email, password, type, phonenumber, itemNumber) VALUES (?, ?, ?, ?, ?, ?)";
-        $stmt = $conn->prepare($sql);
+        $valid = "SELECT email FROM account WHERE email = '$email'";
+        $validd = mysqli_query($conn, $valid);
 
-        $hash_pass = password_hash($password, PASSWORD_BCRYPT, $options);
-        $stmt->bind_param("ssssss", $username, $email, $hash_pass, $type, $phonenumber, $itemNumber);
+        if (mysqli_num_rows($validd) > 0) {
+            $errorMessage = "Email already exist. Please use another email";
+            echo "<script>window.location.href='index.php?alert=error&message=" . urlencode($errorMessage) . "';</script>";
+        } else {
+            $sql = "INSERT INTO account(username, email, password, type, phonenumber, itemNumber) VALUES (?, ?, ?, ?, ?, ?)";
+            $stmt = $conn->prepare($sql);
 
-        if ($stmt->execute()) {
-            $errorMessage = "Account created. Please wait for admin approval";
-            echo "<script>window.location.href='index.php?alert=success&message=" . urlencode($errorMessage) . "';</script>";
+
+
+            $hash_pass = password_hash($password, PASSWORD_BCRYPT, $options);
+            $stmt->bind_param("ssssss", $username, $email, $hash_pass, $type, $phonenumber, $itemNumber);
+
+            if ($stmt->execute()) {
+
+                $sql2 = "INSERT INTO user(userid, firstname, lastname) VALUES (?, ?, ?)";
+                $stmt2 = $conn->prepare($sql2);
+                $userid = $conn->insert_id;
+                $stmt2->bind_param("iss", $userid, $firstname, $lastname);
+
+                $stmt2->execute();
+
+                $errorMessage = "Account created. Please wait for admin approval";
+                echo "<script>window.location.href='index.php?alert=success&message=" . urlencode($errorMessage) . "';</script>";
+            }
         }
     }
 

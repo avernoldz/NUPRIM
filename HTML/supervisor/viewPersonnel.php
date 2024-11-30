@@ -33,21 +33,86 @@ include_once "components/index.php";
             list-style: none;
         }
 
-        .overlay {
-            position: fixed;
+        /* From Uiverse.io by Donewenfu */
+        .loader {
+            position: absolute;
             top: 0;
+            bottom: 0;
             left: 0;
-            z-index: 100;
-            width: 100%;
-            height: 100%;
-            display: none;
-            background: rgba(0, 0, 0, 0.6);
+            right: 0;
+            background: #ffffff73;
+            z-index: 200;
         }
 
-        .spinner-grow {
+        .jimu-primary-loading:before,
+        .jimu-primary-loading:after {
             position: absolute;
-            top: 50%;
-            left: 50%;
+            top: 0;
+            content: '';
+        }
+
+        .jimu-primary-loading:before {
+            left: -19.992px;
+        }
+
+        .jimu-primary-loading:after {
+            left: 19.992px;
+            -webkit-animation-delay: 0.32s !important;
+            animation-delay: 0.32s !important;
+        }
+
+        .jimu-primary-loading:before,
+        .jimu-primary-loading:after,
+        .jimu-primary-loading {
+            background: #076fe5;
+            -webkit-animation: loading-keys-app-loading 0.8s infinite ease-in-out;
+            animation: loading-keys-app-loading 0.8s infinite ease-in-out;
+            width: 13.6px;
+            height: 32px;
+        }
+
+        .jimu-primary-loading {
+            text-indent: -9999em;
+            margin: auto;
+            position: absolute;
+            right: calc(50% - 6.8px);
+            top: calc(50% - 16px);
+            -webkit-animation-delay: 0.16s !important;
+            animation-delay: 0.16s !important;
+        }
+
+        @-webkit-keyframes loading-keys-app-loading {
+
+            0%,
+            80%,
+            100% {
+                opacity: .75;
+                box-shadow: 0 0 #076fe5;
+                height: 32px;
+            }
+
+            40% {
+                opacity: 1;
+                box-shadow: 0 -8px #076fe5;
+                height: 40px;
+            }
+        }
+
+        @keyframes loading-keys-app-loading {
+
+            0%,
+            80%,
+            100% {
+                opacity: .75;
+                box-shadow: 0 0 #076fe5;
+                height: 32px;
+            }
+
+            40% {
+                opacity: 1;
+                box-shadow: 0 -8px #076fe5;
+                height: 40px;
+            }
         }
 
         .data:nth-of-type(odd) {
@@ -109,10 +174,8 @@ include_once "components/index.php";
     $res4 = select($conn, '`detail`', $userid);
 
     ?>
-    <div class="overlay loading">
-        <div class="spinner-grow text-light" role="status">
-            <span class="visually-hidden"></span>
-        </div>
+    <div class="loader loading hidden">
+        <div class="justify-content-center jimu-primary-loading"></div>
     </div>
 
     <div class="main ">

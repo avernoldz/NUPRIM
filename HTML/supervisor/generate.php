@@ -238,11 +238,10 @@ include_once "../user/components/index.php";
                                 $functionid = strtoupper(substr($item['core'], 0, 1));
                                 $doc = getIpcrDoc($conn, $ipcr, $functionid);
                                 $doc['filePath'] = "http://localhost/IPCR/HTML/user/uploads/" . $dirName . "/";
+                                // print_r($doc);
                                 ?>
-                                <?php if (!empty($doc)): ?>
-                                    <!-- <a href="../user/uploads/<?php echo $dirName . "/$doc[uploadedDoc]" ?>" target="_blank"> -->
+                                <?php if (isset($doc[0])): ?>
                                     <i class="fa-solid fa-eye fa-fw text-[#7b8087] absolute right-[-20px] top-[45%] z-50 cursor-pointer" data-doc='<?php echo json_encode($doc); ?>'></i>
-                                    <!-- </a> -->
                                 <?php endif; ?>
                             </td>
                         </tr>
@@ -283,11 +282,12 @@ include_once "../user/components/index.php";
                                 $functionid = strtoupper(substr($item['support'], 0, 1));
                                 $doc = getIpcrDoc($conn, $ipcr, $functionid);
                                 $doc['filePath'] = "http://localhost/IPCR/HTML/user/uploads/" . $dirName . "/";
+                                // print_r($doc);
                                 ?>
-                                <?php if (!empty($doc['uploadedDoc'])): ?>
-                                    <a href="../user/uploads/<?php echo $dirName . "/$doc[uploadedDoc]" ?>" target="_blank">
-                                        <i class="fa-solid fa-eye fa-fw text-[#7b8087] absolute right-[-20px] top-[45%] z-50 cursor-pointer" data-doc='<?php echo json_encode($doc); ?>'></i>
-                                    </a>
+                                <?php if (isset($doc[0])): ?>
+                                    <!-- <a href="../user/uploads/<?php echo $dirName . "/$doc[uploadedDoc]" ?>" target="_blank"> -->
+                                    <i class="fa-solid fa-eye fa-fw text-[#7b8087] absolute right-[-20px] top-[45%] z-50 cursor-pointer" data-doc='<?php echo json_encode($doc); ?>'></i>
+                                    <!-- </a> -->
                                 <?php endif; ?>
                             </td>
                         </tr>
@@ -391,6 +391,7 @@ include_once "../user/components/index.php";
                     <a href="#" class="dropdown-link hover:bg-gray-100  block px-4 py-2 text-sm text-gray-700" data-userid="<?php echo $userid; ?>" id="add-support" role="menuitem" tabindex="-1"><i class="fa-solid fa-add fa-fw mr-2 text-[#7b8087]"></i>Add Support Function</a>
                     <a href="#" class="dropdown-link hover:bg-gray-100 block px-4 py-2 text-sm text-gray-700" data-userid="<?php echo $userid; ?>" id="remove-support" role="menuitem" tabindex="-1"><i class="fa-solid fa-add fa-fw mr-2  rotate-45 text-[#7b8087]"></i>Remove Core Function</a>
                     <a href="#" class="dropdown-link hover:bg-gray-100 block px-4 py-2 text-sm text-gray-700" data-userid="<?php echo $userid; ?>" id="save" role="menuitem" tabindex="-1"><i class="fa-solid fa-check fa-fw mr-2 text-[#7b8087]"></i>Approve Report</a>
+                    <a href="#" class="dropdown-link hover:bg-gray-100 block px-4 py-2 text-sm text-gray-700" data-userid="<?php echo $userid; ?>" id="reject" role="menuitem" tabindex="-1"><i class="fa-solid fa-times fa-fw mr-2 text-[#7b8087]"></i>Reject Report</a>
                     <a href="#" class="dropdown-link hover:bg-gray-100 block px-4 py-2 text-sm text-gray-700" data-userid="<?php echo $userid; ?>" id="print" role="menuitem" tabindex="-1"><i class="fa-solid fa-print fa-fw mr-2 text-[#7b8087]"></i>Print Report</a>
                 </div>
             </div>
@@ -418,7 +419,38 @@ include_once "../user/components/index.php";
                         </div>
                     </div>
                     <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
-                        <button type="button" class=" inline-flex w-full ml-3 justify-center bg-green-600 rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-green-500 tranisition-all duration-200 sm:mt-0 sm:w-auto">Save</button>
+                        <button type="button" data-status="Approved" class="save-button inline-flex w-full ml-3 justify-center bg-green-600 rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-green-500 tranisition-all duration-200 sm:mt-0 sm:w-auto">Save</button>
+                        <button type="button" class="cancel inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-green-300 sm:mt-0 sm:w-auto">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="relative z-10 reject" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+        <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+            <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+                    <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                        <div class="sm:flex sm:items-start">
+                            <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                                <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                                </svg>
+                            </div>
+                            <div class="text-center sm:ml-4 sm:mt-0 sm:text-left">
+                                <h3 class="text-base text-left font-semibold leading-6 text-gray-900" id="modal-title">Reject Report</h3>
+                                <div class="mt-2">
+                                    <p class="text-sm text-left  text-gray-500">Are you sure you want to reject this report? Once saved, this action cannot be undone, and any unsaved changes will be permanently lost.</p>
+                                    <h3 class="text-base text-left font-semibold leading-6 text-gray-900 mt-3">Reason for rejection:</h3>
+                                    <textarea class="form-control" id="r" rows="2"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                        <button type="button" data-status="Rejected" class="save-button inline-flex w-full ml-3 justify-center bg-green-600 rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-green-500 tranisition-all duration-200 sm:mt-0 sm:w-auto">Save</button>
                         <button type="button" class="cancel inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-green-300 sm:mt-0 sm:w-auto">Cancel</button>
                     </div>
                 </div>
@@ -467,7 +499,7 @@ include_once "../user/components/index.php";
                                 </svg>
                             </div>
                             <div class="text-center sm:ml-4 sm:mt-0 sm:text-left mt-3">
-                                <h3 class="text-base font-semibold leading-6 text-gray-900" id="modal-title">Report Approved</h3>
+                                <h3 class="text-base font-semibold leading-6 text-gray-900" id="modal-title-rep"></h3>
                                 <div class="mt-2">
                                     <p class="text-sm text-gray-500">Your file has been saved and is report has been approved.</p>
                                 </div>
@@ -515,7 +547,7 @@ include_once "../user/components/index.php";
 
 
     <script>
-        $('.confirm, .saved, .error, .hover').hide();
+        $('.confirm, .saved, .error, .hover, .reject').hide();
         $(document).ready(function() {
 
             // Add hover event to the eye icons
@@ -523,7 +555,7 @@ include_once "../user/components/index.php";
                 const docData = $(this).data('doc'); // Assuming docData is an array
                 const $list = $('ul[role="list"]'); // Select the list in the modal
 
-                console.log(docData);
+                // console.log(docData);
                 // Clear any existing list items
                 $list.empty();
 
@@ -674,6 +706,20 @@ include_once "../user/components/index.php";
                 $('.sum-30').text(times30);
                 $('.final-avg').text(totalAvg);
 
+                if (totalAvg >= 4.500 && totalAvg <= 5.000) {
+                    rating = "(OS)";
+                } else if (totalAvg >= 3.500 && totalAvg <= 4.499) {
+                    rating = "(VS)";
+                } else if (totalAvg >= 2.500 && totalAvg <= 3.499) {
+                    rating = "(S)";
+                } else if (totalAvg >= 1.500 && totalAvg <= 2.499) {
+                    rating = "(US)";
+                } else if (totalAvg < 1.49) {
+                    rating = "(Poor)";
+                }
+
+
+                $('.vs-rating').text(rating);
             }
 
             function calculateTotalOverallAverage() {
@@ -745,9 +791,13 @@ include_once "../user/components/index.php";
                 $('.confirm').removeClass('hidden').hide().fadeIn(300);
             });
 
+            $('#reject').click(function() {
+                $('.reject').removeClass('hidden').hide().fadeIn(300);
+            });
+
             // Close modal on Cancel button click
             $('.cancel').click(function() {
-                $('.confirm').fadeOut(200, function() {
+                $('.confirm, .reject').fadeOut(200, function() {
                     $(this).addClass('hidden');
                 });
                 $('.error').fadeOut(200, function() {
@@ -756,11 +806,21 @@ include_once "../user/components/index.php";
             });
 
             // Save button action
-            $('button:contains("Save")').click(function() {
+            $('.save-button').click(function() {
+                var status = $(this).data('status');
+                var reason = $('#r').val();
                 $('.confirm').fadeOut(200, function() {
                     $(this).addClass('hidden');
-                    saveIPCR();
+                    saveIPCR(status, reason);
                 });
+
+                if (reason != '') {
+                    $('#modal-title-rep').text('Report Rejected');
+                } else {
+                    $('#modal-title-rep').text('Report Approved');
+                }
+
+                // console.log(reason);
             });
 
             $('.drag').draggable({
@@ -783,7 +843,7 @@ include_once "../user/components/index.php";
                 }
             });
 
-            function saveIPCR() {
+            function saveIPCR(status, reason) {
                 // if ($(this).prop('disabled')) {
                 //     return; // Exit the function if it's disabled
                 // }
@@ -813,6 +873,8 @@ include_once "../user/components/index.php";
                     q: $('.overall-average-q').text(),
                     t: $('.overall-average-t').text(),
                     e: $('.overall-average-e').text(),
+                    status: status,
+                    reason: reason,
                     action: $('.action').text(),
                     finalRating: $('.final-avg').text(),
                     supervisorid: <?php echo $row2['supervisorid']; ?>, // Adjust as needed

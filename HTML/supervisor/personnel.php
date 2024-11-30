@@ -43,6 +43,11 @@ include_once "components/index.php";
 
     $station = $row1['station'];
     ?>
+
+    <div class="loader loading hidden">
+        <div class="justify-content-center jimu-primary-loading"></div>
+    </div>
+
     <div class="main ">
         <div class="row bg">
             <div class="col">
@@ -80,9 +85,10 @@ include_once "components/index.php";
                         while ($rows = mysqli_fetch_array($results1)) {
                             $middle = substr($rows['middlename'], 0, 1);
 
-                            $leave = "SELECT userid FROM leaves WHERE userid = '$rows[userid]'";
+                            $leave = "SELECT userid FROM leaves WHERE userid = '$rows[userid]' AND status = 'Pending'";
                             $lres = mysqli_query($conn, $leave);
                             $lrow = mysqli_fetch_array($lres);
+
                     ?>
                             <tr class="<?php if (!empty($lrow)) echo "!bg-yellow-100" ?>">
                                 <td class="border-0"><?php echo "$rows[userid]" ?></td>

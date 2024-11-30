@@ -17,7 +17,7 @@ $count = countPendingIPCR($conn, $station);
                 <!-- <hr> -->
                 <ul>
                     <a
-                        href="dashboard.php">
+                        href="dashboard.php" class="href">
                         <li class="navi <?php if ($active == "Home") {
                                             echo "active";
                                         } ?>">
@@ -26,7 +26,7 @@ $count = countPendingIPCR($conn, $station);
                         </li>
                     </a>
                     <a
-                        href="personnel.php">
+                        href="personnel.php" class="href">
                         <li class="navi <?php if ($active == "Personnel") {
                                             echo "active";
                                         } ?>">
@@ -37,7 +37,7 @@ $count = countPendingIPCR($conn, $station);
                         </li>
                     </a>
                     <a
-                        href="ipcr.php">
+                        href="ipcr.php" class="href">
                         <li class="navi <?php if ($active == "IPCR") {
                                             echo "active";
                                         } ?>">
@@ -133,7 +133,7 @@ $count = countPendingIPCR($conn, $station);
                     </ul>
 
                     <a
-                        href="announcement.php">
+                        href="announcement.php" class="href">
                         <li class="navi <?php if ($active == "Announcement") {
                                             echo "active";
                                         } ?>">
@@ -169,5 +169,33 @@ $count = countPendingIPCR($conn, $station);
         $('#profile-drop').click(function() {
             $('.drop-profile').slideToggle("fast", "linear");
         });
+
+        $(document).on('click', '.href', function(e) {
+            e.preventDefault(); // Prevent default link behavior (which would cause a reload)
+
+            // Show the loading spinner dynamically
+            $(".loader.loading").removeClass('hidden').fadeIn(300);
+
+            // Get the target URL of the clicked link
+            const targetUrl = $(this).attr('href');
+
+            // Simulate a brief delay (so the user sees the loader) before redirecting
+            setTimeout(function() {
+                window.location.href = targetUrl; // Redirect to the new page
+            }, 500); // You can adjust this delay (500ms is just an example)
+        });
+
+        // Optionally, show the loader when any AJAX request starts
+        $(document).ajaxStart(function() {
+            $(".loader.loading").removeClass('hidden').fadeIn(300); // Show loader on AJAX start
+        });
+
+        // Hide the loader when AJAX requests are completed
+        $(document).ajaxStop(function() {
+            $(".loader.loading").fadeOut(300, function() {
+                $(this).addClass('hidden'); // Hide the loader after AJAX is done
+            });
+        });
+
     })
 </script>
