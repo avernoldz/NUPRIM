@@ -29,7 +29,9 @@ if (!isset($_SESSION['adminid'])) {
 </head>
 
 <body>
-
+    <div class="loader loading hidden">
+        <div class="justify-content-center jimu-primary-loading"></div>
+    </div>
     <?php
     $adminid = $_SESSION['adminid'];
     $active = "Account";
@@ -46,6 +48,41 @@ if (!isset($_SESSION['adminid'])) {
 
     $pquery = "SELECT * FROM plantilla";
     $pres = mysqli_query($conn, $pquery);
+
+    $options = ['cost' => 12];
+    if (isset($_POST['save'])) {
+        $username = $conn->real_escape_string($_POST['username']);
+        $item = $conn->real_escape_string($_POST['item']);
+        $type = $conn->real_escape_string($_POST['type']);
+        $email = $conn->real_escape_string($_POST['email']);
+        $password = $conn->real_escape_string($_POST['password']);
+        $firstname = $conn->real_escape_string($_POST['firstname']);
+        $lastname = $conn->real_escape_string($_POST['lastname']);
+
+        $hash_pass = password_hash($password, PASSWORD_BCRYPT, $options);
+
+        $insert = "INSERT INTO account(username, itemNumber, type, email, password)
+                        VALUES('$username','$item','$type','$email','$hash_pass')";
+
+        if (mysqli_query($conn, $insert)) {
+            $id = mysqli_insert_id($conn);
+
+            $insert2 = "INSERT INTO supervisor(firstname, lastname, userid)
+                        VALUES('$firstname','$lastname','$id')";
+
+            $insert3 = "INSERT INTO service(userid)
+                        VALUES('$id')";
+            mysqli_query($conn, $insert3);
+
+            if (!mysqli_query($conn, $insert2)) {
+                echo "<script>window.location.href='account.php?adminid=$adminid&alert=1';</script>";
+                exit();
+            }
+        } else {
+            echo mysqli_error($conn);
+        }
+    }
+
     ?>
     <div class="main">
         <div class="row">
@@ -169,44 +206,6 @@ if (!isset($_SESSION['adminid'])) {
             </div>
         </div>
     </form>
-
-
-    <?php
-    $options = ['cost' => 12];
-    if (isset($_POST['save'])) {
-        $username = $conn->real_escape_string($_POST['username']);
-        $item = $conn->real_escape_string($_POST['item']);
-        $type = $conn->real_escape_string($_POST['type']);
-        $email = $conn->real_escape_string($_POST['email']);
-        $password = $conn->real_escape_string($_POST['password']);
-        $firstname = $conn->real_escape_string($_POST['firstname']);
-        $lastname = $conn->real_escape_string($_POST['lastname']);
-
-        $hash_pass = password_hash($password, PASSWORD_BCRYPT, $options);
-
-        $insert = "INSERT INTO account(username, itemNumber, type, email, password)
-                        VALUES('$username','$item','$type','$email','$hash_pass')";
-
-        if (mysqli_query($conn, $insert)) {
-            $id = mysqli_insert_id($conn);
-
-            $insert2 = "INSERT INTO supervisor(firstname, lastname, userid)
-                        VALUES('$firstname','$lastname','$id')";
-
-            $insert3 = "INSERT INTO service(userid)
-                        VALUES('$id')";
-            mysqli_query($conn, $insert3);
-
-            if (!mysqli_query($conn, $insert2)) {
-                echo "<script>window.location.href='account.php?adminid=$adminid&alert=1';</script>";
-                exit();
-            }
-        } else {
-            echo mysqli_error($conn);
-        }
-    }
-
-    ?>
 
     <script>
         $(document).ready(function() {

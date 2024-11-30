@@ -71,6 +71,9 @@ include_once "../user/components/index.php";
 
 <body>
 
+    <div class="loader loading hidden">
+        <div class="justify-content-center jimu-primary-loading"></div>
+    </div>
     <?php
     $userid = $_GET['userid'];
     $ipcr = $_GET['ipcrid'];

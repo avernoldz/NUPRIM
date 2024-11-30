@@ -207,3 +207,12 @@ $("#opassword").keyup(function () {
     },
   });
 });
+
+function initializeFlatpickr(selector) {
+  $(selector).flatpickr({
+    dateFormat: "F j, Y",
+    onChange: function (selectedDates, dateStr, instance) {
+      $(selector).text(dateStr); // Update the element with the formatted date
+    },
+  });
+}

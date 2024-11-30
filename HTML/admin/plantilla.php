@@ -29,7 +29,9 @@ if (!isset($_SESSION['adminid'])) {
 </head>
 
 <body>
-
+    <div class="loader loading hidden">
+        <div class="justify-content-center jimu-primary-loading"></div>
+    </div>
     <?php
     $adminid = $_SESSION['adminid'];
     $active = "Plantilla";
@@ -44,6 +46,59 @@ if (!isset($_SESSION['adminid'])) {
         showToastr($alertMessage, $alertType);
     }
 
+
+    if (isset($_POST['save'])) {
+        $itemNumber = htmlspecialchars($_POST['itemNumber'], ENT_QUOTES, 'UTF-8');
+        $position = htmlspecialchars($_POST['position'], ENT_QUOTES, 'UTF-8');
+        $sgrade = htmlspecialchars($_POST['sgrade'], ENT_QUOTES, 'UTF-8');
+        $msalary = htmlspecialchars($_POST['msalary'], ENT_QUOTES, 'UTF-8');
+        $designation = htmlspecialchars($_POST['designation'], ENT_QUOTES, 'UTF-8');
+        $station = htmlspecialchars($_POST['station'], ENT_QUOTES, 'UTF-8');
+
+        // Check if itemNumber already exists
+        $checkQuery = "SELECT * FROM plantilla WHERE itemNumber = '$itemNumber'";
+        $checkResult = mysqli_query($conn, $checkQuery);
+
+        if (mysqli_num_rows($checkResult) > 0) {
+            // Item number already exists
+            echo "<script>window.location.href='plantilla.php?alert=error&message=Item number already exists';</script>";
+        } else {
+            // Insert if no existing itemNumber
+            $insert = "INSERT INTO plantilla(itemNumber, position, sgrade, msalary, designation, station)
+                            VALUES('$itemNumber','$position','$sgrade','$msalary','$designation', '$station')";
+
+            if (mysqli_query($conn, $insert)) {
+                echo "<script>window.location.href='plantilla.php?alert=success&message=Plantilla addedd succesfully';</script>";
+                exit();
+            } else {
+                echo mysqli_error($conn);
+            }
+        }
+    }
+
+    if (isset($_POST['edit-plantilla'])) {
+        $id = htmlspecialchars($_POST['plantillaid'], ENT_QUOTES, 'UTF-8');
+        $position = htmlspecialchars($_POST['position'], ENT_QUOTES, 'UTF-8');
+        $sgrade = htmlspecialchars($_POST['sgrade'], ENT_QUOTES, 'UTF-8');
+        $msalary = htmlspecialchars($_POST['msalary'], ENT_QUOTES, 'UTF-8');
+        $designation = htmlspecialchars($_POST['designation'], ENT_QUOTES, 'UTF-8');
+        $station = htmlspecialchars($_POST['station'], ENT_QUOTES, 'UTF-8');
+
+        $update = "UPDATE plantilla 
+                    SET position = '$position', 
+                        sgrade = '$sgrade', 
+                        msalary = '$msalary', 
+                        designation = '$designation', 
+                        station = '$station' 
+                    WHERE plantillaid = '$id'";
+
+        if (mysqli_query($conn, $update)) {
+            echo "<script>window.location.href='plantilla.php?alert=success&message=Plantilla edited succesfully';</script>";
+            exit();
+        } else {
+            echo mysqli_error($conn);
+        }
+    }
 
     ?>
     <div class="main">
@@ -196,63 +251,6 @@ if (!isset($_SESSION['adminid'])) {
             </div>
         </div>
     </form>
-
-
-
-    <?php
-    if (isset($_POST['save'])) {
-        $itemNumber = htmlspecialchars($_POST['itemNumber'], ENT_QUOTES, 'UTF-8');
-        $position = htmlspecialchars($_POST['position'], ENT_QUOTES, 'UTF-8');
-        $sgrade = htmlspecialchars($_POST['sgrade'], ENT_QUOTES, 'UTF-8');
-        $msalary = htmlspecialchars($_POST['msalary'], ENT_QUOTES, 'UTF-8');
-        $designation = htmlspecialchars($_POST['designation'], ENT_QUOTES, 'UTF-8');
-        $station = htmlspecialchars($_POST['station'], ENT_QUOTES, 'UTF-8');
-
-        // Check if itemNumber already exists
-        $checkQuery = "SELECT * FROM plantilla WHERE itemNumber = '$itemNumber'";
-        $checkResult = mysqli_query($conn, $checkQuery);
-
-        if (mysqli_num_rows($checkResult) > 0) {
-            // Item number already exists
-            echo "<script>window.location.href='plantilla.php?alert=error&message=Item number already exists';</script>";
-        } else {
-            // Insert if no existing itemNumber
-            $insert = "INSERT INTO plantilla(itemNumber, position, sgrade, msalary, designation, station)
-                            VALUES('$itemNumber','$position','$sgrade','$msalary','$designation', '$station')";
-
-            if (mysqli_query($conn, $insert)) {
-                echo "<script>window.location.href='plantilla.php?alert=success&message=Plantilla addedd succesfully';</script>";
-                exit();
-            } else {
-                echo mysqli_error($conn);
-            }
-        }
-    }
-
-    if (isset($_POST['edit-plantilla'])) {
-        $id = htmlspecialchars($_POST['plantillaid'], ENT_QUOTES, 'UTF-8');
-        $position = htmlspecialchars($_POST['position'], ENT_QUOTES, 'UTF-8');
-        $sgrade = htmlspecialchars($_POST['sgrade'], ENT_QUOTES, 'UTF-8');
-        $msalary = htmlspecialchars($_POST['msalary'], ENT_QUOTES, 'UTF-8');
-        $designation = htmlspecialchars($_POST['designation'], ENT_QUOTES, 'UTF-8');
-        $station = htmlspecialchars($_POST['station'], ENT_QUOTES, 'UTF-8');
-
-        $update = "UPDATE plantilla 
-                    SET position = '$position', 
-                        sgrade = '$sgrade', 
-                        msalary = '$msalary', 
-                        designation = '$designation', 
-                        station = '$station' 
-                    WHERE plantillaid = '$id'";
-
-        if (mysqli_query($conn, $update)) {
-            echo "<script>window.location.href='plantilla.php?alert=success&message=Plantilla edited succesfully';</script>";
-            exit();
-        } else {
-            echo mysqli_error($conn);
-        }
-    }
-    ?>
 
     <script src="../JS/app.js"></script>
     <script>

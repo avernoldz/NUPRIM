@@ -442,10 +442,12 @@ if (isset($_POST['userid']) && isset($_POST['type'])) {
             $result = mysqli_query($conn, $query);
             $rows = mysqli_fetch_array($result);
 
-            $query2 = "SELECT * FROM servicehistory WHERE serviceid = '$rows[serviceid]'";
+            $query2 = "SELECT * FROM servicehistory WHERE serviceid = '$rows[serviceid]' ORDER BY id DESC";
             $result2 = mysqli_query($conn, $query2);
             $rows2 = mysqli_fetch_all($result2, MYSQLI_ASSOC);
             $lastDatePromotion = end($rows2);
+
+            $plantilla = getAllPlantilla($conn);
 
             echo '<div class="flex justify-content-end px-4 mt-3" data-bs-toggle="modal" data-bs-target="#addOrder">
                     <i class="fa-solid fa-bars fa-add cursor-pointer p-2 rounded-full bg-gray-200"></i>
@@ -463,7 +465,13 @@ if (isset($_POST['userid']) && isset($_POST['type'])) {
                                 <div class="row column-gap-4">
                                     <div class="col-7">
                                         <label for="newPosition" class="form-label">Position Title</label>
-                                        <input type="text" id="newPosition" class="form-control" name="newPosition" required>
+                                        <select id="newPosition" class="form-control" name="newPosition" required>';
+
+            foreach ($plantilla as $value) {
+                echo ' <option value="' . $value['position'] . '">' . $value['itemNumber'] . ' - ' . $value['position'] . '</option>';
+            }
+            echo '
+                                        </select>
                                     </div>
 
                                     <div class="col">
@@ -500,7 +508,7 @@ if (isset($_POST['userid']) && isset($_POST['type'])) {
                     </div>
                     <div class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                         <dt class="text-sm font-medium leading-6 text-gray-900">Date of Last Promotion</dt>
-                        <dd class="mt-1 text-sm flat-pickrSd leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="service" data-date="authorityDate" data-field="lastPromotion" data-id="' . emptyData("serviceid", $rows) . '">' . date('F d, Y', strtotime($lastDatePromotion['datePromotion'])) . '</dd>
+                        <dd class="mt-1 text-sm flat-pickrSd leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" contenteditable="true" data-table="service" data-date="authorityDate" data-field="lastPromotion" data-id="' . emptyData("serviceid", $rows) . '">' . emptyData("lastPromotion", $rows) . '</dd>
                     </div>
                     <div class="px-4 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
                         <dt class="text-sm font-medium leading-6 text-gray-900">Step Increment</dt>
@@ -516,23 +524,66 @@ if (isset($_POST['userid']) && isset($_POST['type'])) {
                         <dt class="text-sm font-medium leading-6 text-gray-900">Promotion History</dt>
                 </div>
                 ';
-            foreach ($rows2 as $data) {
-                echo '
-                <dl class="divide-y divide-gray-100">
-                    <div class="px-5 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                        <dt class="text-sm font-medium leading-6 text-gray-900">Last Position</dt>
-                        <dd class="capitalize flat-pickr mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" data-table="service" data-date="authorityDate" data-field="entered" data-id="">' . emptyData("lastPosition", $data) . '</dd>
-                    </div>
-                    <div class="px-5 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                        <dt class="text-sm font-medium leading-6 text-gray-900">New Position</dt>
-                        <dd class="mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" data-table="service" data-field="appStatus" data-id="">' . emptyData("newPosition", $data) . '</dd>
-                    </div>
-                        <div class="px-5 py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0">
-                        <dt class="text-sm font-medium leading-6 text-gray-900">Date of Promotion</dt>
-                        <dd class="mt-1 text-sm flat-pickrEd leading-6 text-gray-700 sm:col-span-2 sm:mt-0 focus:outline focus:outline-offset-2 focus:outline-blue-500" data-table="service" data-date="authorityDate" data-field="permanency" data-id="">' . emptyData("datePromotion", $data) . '</dd>
-                    </div>
-                </dl>';
+
+            echo '
+                <style>
+                    /* Hover effect for rows */
+                    #myTable tbody tr:hover {
+                        background-color: #f4f4f4; /* Light gray background on hover */
+                    }
+            
+                    /* Muted color for links inside table cells on hover */
+                    #myTable tbody tr:hover td a {
+                        color: #6c757d; /* Muted gray color for links */
+                    }
+            
+                    /* Optional: Add nth-child hover effects if you need different behavior per column */
+                    #myTable tbody tr:nth-child(odd):hover {
+                        background-color: #f0f0f0; /* Slightly different hover background for odd rows */
+                    }
+            
+                    #myTable tbody tr:nth-child(even):hover {
+                        background-color: #f0f0f0; /* Slightly different hover background for even rows */
+                    }
+
+                    #myTable tbody tr:nth-child(even) {
+                        background-color: #fafafa; /* Slightly different hover background for even rows */
+                    }
+                </style>
+            ';
+
+            echo '
+                <div class="px-4 py-2">
+                    <table class="table-auto w-full border-collapse border border-gray-200" id="myTable">
+                        <thead class="bg-[var(--blue-400)]">
+                            <tr>
+                                <th class="text-sm font-medium text-white px-4 py-2 border-b">#</th>
+                                <th class="text-sm font-medium text-white px-4 py-2 border-b">Last Position</th>
+                                <th class="text-sm font-medium text-white px-4 py-2 border-b">New Position</th>
+                                <th class="text-sm font-medium text-white px-4 py-2 border-b">Date of Promotion</th>
+                            </tr>
+                        </thead>
+                        <tbody>';
+            $i = 0;
+            if (!empty($rows2)) {
+                foreach ($rows2 as $data) {
+                    $i++;
+                    echo '
+                        <tr class="border-b">
+                            <td class="capitalize mt-1 text-sm leading-6 text-gray-700 px-4 py-2">' . $i . '</td>
+                            <td class="capitalize mt-1 text-sm leading-6 text-gray-700 px-4 py-2" data-table="service" data-field="entered" data-id="">' . emptyData("lastPosition", $data) . '</td>
+                            <td class="mt-1 text-sm leading-6 text-gray-700 px-4 py-2" data-table="service" data-field="appStatus" data-id="">' . emptyData("newPosition", $data) . '</td>
+                            <td class="mt-1 text-sm flat-pickrEd leading-6 text-gray-700 px-4 py-2" data-table="service" data-date="authorityDate" data-field="permanency" data-id="">' . emptyData("datePromotion", $data) . '</td>
+                        </tr>';
+                }
+            } else {
+                echo '<tr class="border-b"><td  colspan="4" class="text-center capitalize mt-1 text-sm leading-6 text-gray-700 px-4 py-2"> No data</td></tr>';
             }
+
+            echo '
+                        </tbody>
+                    </table>
+                </div>';
             break;
         case 'training':
             $query = "SELECT * FROM training WHERE userid = '$userid' ORDER BY dateEnd DESC";

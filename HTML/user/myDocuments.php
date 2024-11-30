@@ -70,6 +70,10 @@ include_once "components/index.php";
 
 <body>
 
+    <div class="loader loading hidden">
+        <div class="justify-content-center jimu-primary-loading"></div>
+    </div>
+
     <?php
     $userid = $_SESSION['userid'];
     $active = "My Documents";

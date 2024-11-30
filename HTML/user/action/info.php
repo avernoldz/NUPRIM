@@ -13,7 +13,7 @@ if (isset($_POST['submit'])) {
     $gender = $_POST['gender'];
     $sanitized_gender = mysqli_real_escape_string($conn, $gender);
     $date_of_birth = $_POST['date-of-birth'];
-    $sanitized_birth = mysqli_real_escape_string($conn, $date_of_birth);
+    $sanitized_birth = date('y-m-d', strtotime(mysqli_real_escape_string($conn, $date_of_birth)));
     $place_of_birth = $_POST['place-of-birth'];
     $sanitized_place = mysqli_real_escape_string($conn, $place_of_birth);
     $number = $_POST['cnumber'];

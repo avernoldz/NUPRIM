@@ -67,6 +67,11 @@ include_once "components/index.php";
     ];
 
     ?>
+
+    <div class="loader loading hidden">
+        <div class="justify-content-center jimu-primary-loading"></div>
+    </div>
+
     <div class="main ">
         <div class="row bg">
             <div class="col">
@@ -84,7 +89,7 @@ include_once "components/index.php";
                                 <td>
                                     <p>Name </p>
                                 </td>
-                                <td>: <span contenteditable="true" class="ml-3 content font-semibold" data-field="s_name" data-table="assessed"><?php echo $rowassessby['s_name'] ?></span></td>
+                                <td>: <span contenteditable="true" class="ml-3 content font-semibold" data-field="s_name" data-table="assessed"><?php echo emptyData("s_name", $rowassessby) ?></span></td>
                             </tr>
                             <tr>
                                 <td>
@@ -93,7 +98,7 @@ include_once "components/index.php";
                                 <td>:
                                     <!-- <span contenteditable="true" class="ml-3 content font-semibold" data-field="s_rank" data-table="assessed">SPO III</span> -->
                                     <select class="ml-3 font-semibold" data-field="s_rank" data-table="assessed" id="s_rank">
-                                        <option value="<?php echo $rowassessby['s_rank'] ?>"><?php echo $rowassessby['s_rank'] ?></option>
+                                        <option value="<?php echo emptyData("s_rank", $rowassessby) ?>"><?php echo emptyData("s_rank", $rowassessby) ?></option>
                                         <?php foreach ($pos as $value): ?>
                                             <option value="<?php echo $value ?>"><?php echo $value ?></option>
                                         <?php endforeach; ?>
@@ -104,7 +109,7 @@ include_once "components/index.php";
                                 <td>
                                     <p>Designation </p>
                                 </td>
-                                <td>: <span contenteditable="true" class="ml-3 content font-semibold" data-field="s_designation" data-table="assessed"><?php echo $rowassessby['s_designation'] ?></span></td>
+                                <td>: <span contenteditable="true" class="ml-3 content font-semibold" data-field="s_designation" data-table="assessed"><?php echo emptyData("s_designation", $rowassessby) ?></span></td>
                             </tr>
                         </table>
                     </div>
@@ -120,7 +125,7 @@ include_once "components/index.php";
                             <td>
                                 <p>Name </p>
                             </td>
-                            <td>: <span contenteditable="true" class="ml-3 content font-semibold" data-field="a_name" data-table="assessed"><?php echo $rowassessby['a_name'] ?></span></td>
+                            <td>: <span contenteditable="true" class="ml-3 content font-semibold" data-field="a_name" data-table="assessed"><?php echo emptyData("a_name", $rowassessby) ?></span></td>
                         </tr>
                         <tr>
                             <td>
@@ -128,7 +133,7 @@ include_once "components/index.php";
                             </td>
                             <td>:
                                 <select class="ml-3 font-semibold" data-field="a_rank" data-table="assessed" id="a_rank">
-                                    <option value="<?php echo $rowassessby['a_rank'] ?>"><?php echo $rowassessby['a_rank'] ?></option>
+                                    <option value="<?php echo emptyData("a_rank", $rowassessby) ?>"><?php echo emptyData("a_rank", $rowassessby) ?></option>
                                     <?php foreach ($pos as $value): ?>
                                         <option value="<?php echo $value ?>"><?php echo $value ?></option>
                                     <?php endforeach; ?>
@@ -139,7 +144,7 @@ include_once "components/index.php";
                             <td>
                                 <p>Designation </p>
                             </td>
-                            <td>: <span contenteditable="true" class="ml-3 content font-semibold" data-field="a_designation" data-table="assessed"><?php echo $rowassessby['a_designation'] ?></span></td>
+                            <td>: <span contenteditable="true" class="ml-3 content font-semibold" data-field="a_designation" data-table="assessed"><?php echo emptyData("s_designation", $rowassessby) ?></span></td>
                         </tr>
                     </table>
                 </div>
@@ -154,7 +159,7 @@ include_once "components/index.php";
                             <td>
                                 <p>Name </p>
                             </td>
-                            <td>: <span contenteditable="true" class="ml-3 content font-semibold" data-field="p_name" data-table="assessed"><?php echo $rowassessby['p_name'] ?></span></td>
+                            <td>: <span contenteditable="true" class="ml-3 content font-semibold" data-field="p_name" data-table="assessed"><?php echo emptyData("p_name", $rowassessby) ?></span></td>
                         </tr>
                         <tr>
                             <td>
@@ -162,7 +167,7 @@ include_once "components/index.php";
                             </td>
                             <td>:
                                 <select class="ml-3 font-semibold" data-field="p_rank" data-table="assessed" id="p_rank">
-                                    <option value="<?php echo $rowassessby['p_rank'] ?>"><?php echo $rowassessby['p_rank'] ?></option>
+                                    <option value="<?php echo emptyData("p_rank", $rowassessby) ?>"><?php echo emptyData("p_rank", $rowassessby) ?></option>
                                     <?php foreach ($pos as $value): ?>
                                         <option value="<?php echo $value ?>"><?php echo $value ?></option>
                                     <?php endforeach; ?>
@@ -173,7 +178,7 @@ include_once "components/index.php";
                             <td>
                                 <p>Designation </p>
                             </td>
-                            <td>: <span contenteditable="true" class="ml-3 content font-semibold" data-field="p_designation" data-table="assessed"><?php echo $rowassessby['p_designation'] ?></span></td>
+                            <td>: <span contenteditable="true" class="ml-3 content font-semibold" data-field="p_designation" data-table="assessed"><?php echo emptyData("s_designation", $rowassessby) ?></span></td>
                         </tr>
                     </table>
                 </div>
